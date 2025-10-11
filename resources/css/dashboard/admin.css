@@ -1,0 +1,324 @@
+/* Aquí va todo tu CSS existente... */
+:root {
+    --primary-color: #34495e;
+    --secondary-color: #2c3e50;
+    --accent-color: #3498db;
+    --text-color: #ecf0f1;
+    --bg-light: #f4f7f9;
+    --card-bg: #ffffff;
+    --shadow: 4px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-light);
+}
+
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    transition: width 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    overflow-x: hidden;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    margin-bottom: 30px;
+}
+
+/* Styles for name and toggle button */
+.profile-info-minimal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.profile-info-minimal h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-right: 15px; /* Add some space between the name and button */
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    align-self: center;
+    position: relative;
+    left: -20px;
+}
+
+/* Hide the profile name when the menu is collapsed */
+.sidebar.collapsed .profile-info-minimal h3 {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Navigation */
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar-nav li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-nav li a:hover,
+.sidebar-nav li a.active {
+    background-color: #e18011;
+}
+
+.sidebar-nav li a i {
+    font-size: 1.2rem;
+    margin-right: 15px;
+    transition: margin 0.3s ease;
+}
+
+.sidebar.collapsed .sidebar-nav li a i {
+    margin-right: 0;
+}
+
+.sidebar-nav li a span {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    white-space: nowrap;
+}
+
+.sidebar.collapsed .sidebar-nav li a span {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+/* Footer */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logout-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
+    padding: 15px 20px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    position: relative;
+    left: -10px;
+    transform: translateX(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    white-space: nowrap;
+}
+
+.logout-btn:hover {
+    background-color: #e18011;
+}
+
+.logout-btn i {
+    margin-right: 10px;
+}
+
+.sidebar.collapsed .logout-btn span {
+    display: none;
+}
+
+.sidebar.collapsed .logout-btn i {
+    margin: 0;
+}
+
+/* Main Content */
+.main-content {
+    flex-grow: 1;
+    padding: 40px;
+}
+
+.main-header {
+    margin-bottom: 30px;
+}
+
+.welcome-message h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 30px;
+}
+
+.profile-info-minimal {
+    display: grid;
+    grid-template-areas:
+        "name toggle"
+        "role toggle";
+    grid-template-columns: 1fr auto; 
+    align-items: center;
+    width: 100%;
+}
+
+/* Nombre */
+.profile-info-minimal h3 {
+    grid-area: name;
+    margin: 0;
+}
+
+/* Rol debajo del nombre */
+.profile-info-minimal .role {
+    grid-area: role;
+    font-size:  15px;
+    color: #e18011;
+    margin-top: 2px;
+}
+
+/* Ocultar el rol cuando la sidebar está colapsada */
+.sidebar.collapsed .profile-info-minimal .role {
+    display: none;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.user-profile-photo-upload {
+    display: flex;
+    align-items: center;
+}
+
+.profile-photo-label {
+    cursor: pointer;
+    display: block;
+    position: relative;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--accent-color);
+    border: none;
+}
+
+.profile-photo-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-photo-label:hover {
+    opacity: 0.8;
+}
+
+/* --- Nuevos estilos para los submenús --- */
+
+/* Contenedor del submenú */
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: var(--secondary-color);
+    overflow: hidden; 
+    height: 0; /* colapsado por defecto */
+    transition: height 0.3s ease-out;
+    
+}
+
+
+/* Cuando el submenú está activo */
+.has-submenu.active .submenu {
+    height: auto; /* deja que crezca según el contenido */
+}
+
+
+/* Enlaces dentro del submenú */
+.submenu li a {
+    display: flex;           /* activa flexbox */
+    align-items: center;
+    padding: 10px 20px 10px 45px;
+    font-size: 0.9rem;
+    position: relative;
+    color: #e18011;
+   
+}
+
+/*.submenu li a::before {
+    content: '';
+    position: absolute;
+    left: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 5px;
+    background-color: var(--text-color);
+    border-radius: 50%;
+}*/
+.submenu li a i {
+    margin-right: 10px; 
+    font-size: 0.9rem;
+    color: #d6cec4;
+      display: flex;
+    align-items: center; 
+    
+}
+.submenu li a:hover {
+    background-color: #3f556d;
+}
+
+/* Flecha del submenú */
+.submenu-arrow {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+/* Rota la flecha cuando el submenú está activo */
+.has-submenu.active .submenu-arrow {
+    transform: rotate(90deg);
+}
+
+/* Ocultar flecha y submenu si el menú está colapsado */
+.sidebar.collapsed .submenu-arrow,
+.sidebar.collapsed .submenu {
+    display: none;
+}

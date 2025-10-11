@@ -1,0 +1,232 @@
+
+/* Fondo del modal */
+.modal {
+  display: none;
+  position: fixed;         /* ya estaba bien */
+  top: 0;                  /* asegurar que quede pegado al top */
+  left: 0;                 /* asegurar que quede pegado al left */
+  width: 100vw;            /* ocupar todo el ancho */
+  height: 100vh;           /* ocupar toda la altura */
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999999;     /* súper alto para que quede encima de todo */
+}
+
+/* Caja del formulario */
+.modal-content {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 14px;
+  max-width: 280px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+
+  transform: translateY(-60px) scale(0.8);
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+ opacity 0.35s ease;
+  z-index: 1000000000;
+}
+
+.modal.show .modal-content {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Botón cerrar */
+.close-btn {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%) scale(1);
+  font-size: 22px;
+  background: #fff;
+  border-radius: 50%;
+  padding: 4px 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  color: #e18011;
+  cursor: pointer;
+  z-index: 2147483648;       /* aseguramos que quede encima de la caja */
+  transition: transform 0.25s ease, background 0.3s ease, color 0.3s ease;
+}
+.close-btn:hover {
+  transform: translateX(-50%) scale(1.3) rotate(90deg);
+  background: #e18011;
+  color: #fff;
+}
+
+/* Logo */
+.modal-content .logo1 img {
+  max-width: 90px;
+  margin-bottom: 1rem;
+}
+
+/* Título */
+.modal-content h2 {
+  margin-bottom: 1rem;
+  color: #e18011;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#loginForm {
+  position: relative; /* para que el span se posicione dentro del form */
+}
+/* Inputs estilo moderno (solo línea) */
+#loginForm input {
+  width: 90%;
+  max-width: 220px;
+  padding: 10px 5px;               /* un poquito de padding */
+  margin: 10px auto;
+  border: none;                     /* sin borde completo */
+  border-bottom: 2px solid #ccc;    /* línea inferior */
+  font-size: 14px;
+  display: block;
+  background: transparent;          /* fondo transparente */
+  transition: border-color 0.3s ease, transform 0.2s ease;
+}
+
+
+/* Hover: cambio suave de color */
+#loginForm input:hover {
+  border-bottom: 2px solid #e18011; /* colorcito como tus botones */
+  transform: none;      /* ligera elevación */
+}
+
+/* Focus: línea más intensa */
+#loginForm input:focus {
+  outline: none;                     /* sin outline */
+  border-bottom: 2px solid #c46a0e; /* tono más oscuro */
+}
+
+
+
+/* Botón submit */
+#loginForm button {
+  width: 70%;
+  max-width: 200px;
+  padding: 12px;
+  margin-top: 10px;
+  background: #e18011;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.25s ease;
+}
+#loginForm button:hover {
+  background: #c46a0e;
+  transform: scale(1.05);
+}
+
+/* Mensaje */
+#loginMessage {
+  margin-top: 10px;
+  color: red;
+  font-size: 14px;
+}
+
+/* 📱 Responsivo */
+@media (max-width: 480px) {
+  .modal-content {
+    max-width: 280px;
+    width: 90%;
+    padding: 1rem;
+  }
+  .modal-content h2 {
+    font-size: 18px;
+  }
+  #loginForm input {
+    font-size: 13px;
+    max-width: 200px;
+  }
+  #loginForm button {
+    font-size: 14px;
+    padding: 10px;
+    max-width: 180px;
+  }
+  .modal-content .logo1 img {
+    max-width: 90px;
+  }
+}
+
+/* Contenedor general para inputs */
+.input-wrapper,
+.password-wrapper {
+  position: relative;
+  width: 90%;
+  max-width: 250px;
+  margin: 10px auto;
+}
+
+/* Inputs iguales */
+.input-wrapper input,
+.password-wrapper input {
+  width: 100%;
+  padding: 10px 40px 10px 10px; /* deja espacio a la derecha por si hay icono */
+  border: none;
+  border-bottom: 2px solid #ccc;
+  font-size: 14px;
+  background: transparent;
+  display: block;
+  box-sizing: border-box;
+}
+
+/* Hover */
+.input-wrapper input:hover,
+.password-wrapper input:hover {
+  border-bottom: 2px solid #e18011;
+}
+
+/* Focus */
+.input-wrapper input:focus,
+.password-wrapper input:focus {
+  outline: none;
+  border-bottom: 2px solid #c46a0e;
+}
+
+/* Icono del ojo */
+.password-wrapper .toggle-password {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 16px;
+  color: #c46a0e;
+}
+
+.password-wrapper .toggle-password:hover {
+  color: #e18011;
+}
+.toggle-password i {
+  transition: transform 0.2s ease;
+}
+
+a.google-btn {
+  display: inline-block;
+  background: #F2F2F2;
+  color: #3C4043;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  margin-top: 10px;
+  border: 1px solid #DADCE0;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+a.google-btn i {
+  margin-right: 8px;
+  color: #DB4437; /* rojo característico del logo */
+}
+
+a.google-btn:hover {
+  background: #E8E8E8; /* gris más oscuro al hacer hover */
+  border-color: #DADCE0;
+}
