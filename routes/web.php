@@ -15,7 +15,7 @@ Route::get('/dashboard/usuario', function () {
 
 // Rutas para los otros roles
 Route::get('/dashboard/admin', function () {
-    return view('dashboard.admin2'); // <--- debe ser 'admin2', no 'admin'
+    return view('dashboard.admin2'); 
 })->name('admin2.dashboard');
 
 Route::get('/dashboard/dashboardProv', function () {
@@ -33,6 +33,8 @@ Route::get('/dashboard/usuarios', function () {
 // Rutas de autenticación
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/register', [LoginController::class, 'register'])->name('register.post');
+// Crear usuario desde dashboard (modal)
+Route::post('/dashboard/usuarios', [LoginController::class, 'store'])->name('usuarios.store');
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
 

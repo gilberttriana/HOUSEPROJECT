@@ -141,4 +141,30 @@ class LoginController extends Controller
         return redirect()->back()->with('success', 'Rol actualizado correctamente.');
     }
 
+    // Almacenar nuevo usuario desde el dashboard (solo admin puede asignar rol distinto de 'usuario')
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required|string|max:100',
+            'apellido' => 'required|string|max:255',
+            'correo' => 'required|email|unique:usuarios,correo',
+            'rol' => 'required|string|in:usuario,proveedor,maestro,admin',
+            'contrasena' => 'required|string|min:6|confirmed',
+        ]);
+
+        $actor = Auth::user();
+        // Si el actor no es admin, forzamos rol 'usuario' para seguridad
+        $rol = ($actor && $actor->rol === 'admin') ? $request->rol : 'usuario';
+
+        $usuario = Usuario::create([
+            'nombre' => $request->nombre,
+            'apellido' => $request->apellido,
+            'correo' => $request->correo,
+            'contrasena' => Hash::make($request->contrasena),
+            'rol' => $rol,
+        ]);
+
+        return redirect()->back()->with('success', 'Usuario creado correctamente.');
+    }
+
 }

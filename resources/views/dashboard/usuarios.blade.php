@@ -7,6 +7,11 @@
   @endif
   <header class="flex justify-between items-center mb-8">
     <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Gestionar Usuarios</h2>
+    @if(auth()->check() && auth()->user()->rol === 'admin')
+    <div>
+      <button id="btnNuevoUsuario" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded hover:bg-primary/90">Nuevo usuario</button>
+    </div>
+    @endif
   </header>
   <div class="mb-6">
     <div class="relative">
@@ -80,4 +85,75 @@
 @endforeach
   </div>
 </div>
+<!-- Modal para crear usuario -->
+<div id="nuevoUsuarioModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+  <div class="bg-white dark:bg-gray-800 rounded-lg w-full max-w-2xl p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Registrar nuevo usuario</h3>
+      <button id="closeNuevoUsuario" class="text-gray-500 hover:text-gray-700">✕</button>
+    </div>
+    <form method="POST" action="{{ route('usuarios.store') }}">
+      @csrf
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm text-gray-700 dark:text-gray-300">Nombre</label>
+          <input name="nombre" type="text" required class="w-full mt-1 px-3 py-2 border rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 dark:text-gray-300">Apellido</label>
+          <input name="apellido" type="text" required class="w-full mt-1 px-3 py-2 border rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 dark:text-gray-300">Correo electrónico</label>
+          <input name="correo" type="email" required class="w-full mt-1 px-3 py-2 border rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 dark:text-gray-300">Rol</label>
+          <select name="rol" required class="w-full mt-1 px-3 py-2 border rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+            @foreach($roles as $r)
+              <option value="{{ $r }}">{{ ucfirst($r) }}</option>
+            @endforeach
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 dark:text-gray-300">Contraseña</label>
+          <input name="contrasena" type="password" required class="w-full mt-1 px-3 py-2 border rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
+        </div>
+        <div>
+          <label class="block text-sm text-gray-700 dark:text-gray-300">Confirmar contraseña</label>
+          <input name="contrasena_confirmation" type="password" required class="w-full mt-1 px-3 py-2 border rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white" />
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button type="button" id="cancelNuevoUsuario" class="mr-3 px-4 py-2 rounded border">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Crear usuario</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+@section('scripts')
+<script>
+  // Expose initializer so layout AJAX loader can rebind handlers
+  function initUsuariosModal(){
+    const btn = document.getElementById('btnNuevoUsuario');
+    const modal = document.getElementById('nuevoUsuarioModal');
+    const close = document.getElementById('closeNuevoUsuario');
+    const cancel = document.getElementById('cancelNuevoUsuario');
+    if(btn && modal){
+      // prevent adding duplicate listeners: remove by cloning
+      btn.replaceWith(btn.cloneNode(true));
+      const newBtn = document.getElementById('btnNuevoUsuario');
+      newBtn.addEventListener('click', function(){ modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(()=>{ modal.querySelector('input[name=nombre]')?.focus(); }, 10); });
+    }
+    if(close && modal){ close.replaceWith(close.cloneNode(true)); document.getElementById('closeNuevoUsuario').addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); }
+    if(cancel && modal){ cancel.replaceWith(cancel.cloneNode(true)); document.getElementById('cancelNuevoUsuario').addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); }
+    if(modal){ modal.addEventListener('click', function(e){ if(e.target === this){ this.classList.add('hidden'); this.classList.remove('flex'); } }); }
+  }
+
+  window.initUsuariosModal = initUsuariosModal;
+  // run on first load
+  document.addEventListener('DOMContentLoaded', function(){ initUsuariosModal(); });
+</script>
+@endsection
 @endsection
