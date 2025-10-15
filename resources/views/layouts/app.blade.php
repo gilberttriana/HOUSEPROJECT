@@ -43,5 +43,72 @@
     </main>
   </div>
   @yield('scripts')
+  <script>
+    // AJAX navigation for sidebar links: intercept clicks, fetch content and replace <main>
+    (function(){
+      function initAjaxNav(){
+        const sidebar = document.getElementById('sidebarNav');
+        if(!sidebar) return;
+        sidebar.addEventListener('click', function(e){
+          const a = e.target.closest('a');
+          if(!a || !sidebar.contains(a)) return;
+          const href = a.getAttribute('href');
+          
+          if(!href || href === '#') return;
+            if(e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+          if(a.target && a.target.toLowerCase() !== '_self') return;
+  
+          let urlObj;
+          try{ urlObj = new URL(href, location.origin); } catch(err){ console.debug('AJAXNav: invalid URL', href); return; }
+          if(urlObj.origin !== location.origin) return; 
+          e.preventDefault();
+          const fetchUrl = urlObj.pathname + urlObj.search + (urlObj.hash ? ('#' + urlObj.hash.replace(/^#/,'')) : '');
+          console.debug('AJAXNav: fetching', fetchUrl);
+          fetchPage(fetchUrl, true);
+        });
+        
+        window.addEventListener('popstate', function(e){
+          const url = location.pathname + location.search;
+          fetchPage(url, false);
+        });
+      }
+
+      async function fetchPage(url, push){
+        try{
+          const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+          if(!res.ok) throw new Error('Network error');
+          const text = await res.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+          const newMain = doc.querySelector('main');
+          const curMain = document.querySelector('main');
+          if(newMain && curMain){
+            curMain.innerHTML = newMain.innerHTML;
+            const newTitle = doc.querySelector('title');
+            if(newTitle) document.title = newTitle.textContent;
+            if(push) history.pushState({}, '', url);
+
+              try {
+                if (typeof window.initAdminCharts === 'function') { try { window.initAdminCharts(); } catch(e){ console.error('initAdminCharts failed', e); } }
+                if (typeof window.initAdminUI === 'function') { try { window.initAdminUI(); } catch(e){ console.error('initAdminUI failed', e); } }
+
+                if (typeof window.afterAjaxLoad === 'function') { try { window.afterAjaxLoad(); } catch (e) { console.error('afterAjaxLoad hook failed', e); } }
+              } catch(err){ console.error('Error running page initializers', err); }
+          } else {
+            window.location.href = url;
+          }
+        }catch(err){
+          console.error('AJAX navigation failed', err);
+          window.location.href = url; 
+        }
+      }
+
+      if(document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', initAjaxNav);
+      } else {
+        initAjaxNav();
+      }
+    })();
+  </script>
 </body>
 </html>

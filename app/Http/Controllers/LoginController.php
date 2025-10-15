@@ -116,4 +116,29 @@ class LoginController extends Controller
     return view('dashboard.usuarios', compact('usuariosPorRol', 'roles'));
 }
 
+    // Cambiar el rol de un usuario (solo admin)
+    public function cambiarRol(Request $request)
+    {
+        $request->validate([
+            // la tabla usa id_usuario como primary key
+            'usuario_id' => 'required|integer|exists:usuarios,id_usuario',
+            'rol' => 'required|string|in:usuario,proveedor,maestro,admin',
+        ]);
+
+        $actor = Auth::user();
+        if (!$actor || $actor->rol !== 'admin') {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
+        $usuario = Usuario::find($request->usuario_id);
+        if (!$usuario) {
+            return response()->json(['success' => false, 'message' => 'Usuario no encontrado.'], 404);
+        }
+
+        $usuario->rol = $request->rol;
+        $usuario->save();
+
+        return redirect()->back()->with('success', 'Rol actualizado correctamente.');
+    }
+
 }

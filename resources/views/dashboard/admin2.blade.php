@@ -223,131 +223,149 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.2/xlsx.full.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  // Chart.js
-  const ctx = document.getElementById('projectsChart');
-  if (ctx) {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    const gridColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-    const textColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Proyecto A', 'Proyecto B', 'Proyecto C', 'Proyecto D', 'Proyecto E'],
-        datasets: [{
-          label: 'Progreso del Proyecto (%)',
-          data: [60, 100, 30, 0, 85],
-          backgroundColor: [
-            'rgba(17, 115, 212, 0.6)',
-            'rgba(34, 197, 94, 0.6)',
-            'rgba(17, 115, 212, 0.6)',
-            'rgba(234, 179, 8, 0.6)',
-            'rgba(17, 115, 212, 0.6)'
-          ],
-          borderColor: [
-            'rgba(17, 115, 212, 1)',
-            'rgba(34, 197, 94, 1)',
-            'rgba(17, 115, 212, 1)',
-            'rgba(234, 179, 8, 1)',
-            'rgba(17, 115, 212, 1)'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: { color: gridColor },
-            ticks: { color: textColor }
-          },
-          x: {
-            grid: { display: false },
-            ticks: { color: textColor }
-          }
-        },
-        plugins: {
-          legend: { labels: { color: textColor } }
-        }
+  // Expose initialization functions so they can be called after AJAX page loads
+  function initAdminCharts(){
+    // Chart.js
+    const ctx = document.getElementById('projectsChart');
+    if (ctx) {
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      const gridColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+      const textColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+      // destroy existing Chart instance if present to avoid duplicates
+      if (ctx._chartInstance) {
+        try{ ctx._chartInstance.destroy(); } catch(e){}
       }
-    });
+      const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Proyecto A', 'Proyecto B', 'Proyecto C', 'Proyecto D', 'Proyecto E'],
+          datasets: [{
+            label: 'Progreso del Proyecto (%)',
+            data: [60, 100, 30, 0, 85],
+            backgroundColor: [
+              'rgba(17, 115, 212, 0.6)',
+              'rgba(34, 197, 94, 0.6)',
+              'rgba(17, 115, 212, 0.6)',
+              'rgba(234, 179, 8, 0.6)',
+              'rgba(17, 115, 212, 0.6)'
+            ],
+            borderColor: [
+              'rgba(17, 115, 212, 1)',
+              'rgba(34, 197, 94, 1)',
+              'rgba(17, 115, 212, 1)',
+              'rgba(234, 179, 8, 1)',
+              'rgba(17, 115, 212, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: gridColor },
+              ticks: { color: textColor }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: textColor }
+            }
+          },
+          plugins: {
+            legend: { labels: { color: textColor } }
+          }
+        }
+      });
+      // store instance for potential destruction later
+      ctx._chartInstance = chart;
+    }
   }
 
-  // Modal JS puro
-  document.querySelectorAll('#projectsTable tbody tr').forEach(function(row){
-    row.addEventListener('click', function(){
-      document.getElementById('projectReportModal').style.display = "flex";
-      document.getElementById('reportProjectName').value = row.dataset.name || '';
-      document.getElementById('reportProjectContractor').value = row.dataset.contractor || '';
-      document.getElementById('reportProjectMaterials').value = row.dataset.materials || '';
-      document.getElementById('reportProjectEstimatedTime').value = row.dataset.estimated_time || '';
-      document.getElementById('reportProjectMaterialCosts').value = row.dataset.material_costs || '';
-      document.getElementById('reportProjectLaborCosts').value = row.dataset.labor_costs || '';
-      document.getElementById('reportProjectStatus').value = row.dataset.status || '';
-      document.getElementById('reportProjectDesc').textContent =
-        "Información consolidada del " + (row.dataset.name || 'proyecto') + " para la generación del reporte.";
+  function initAdminUI(){
+    // Modal JS puro: attach listeners to rows and buttons
+    document.querySelectorAll('#projectsTable tbody tr').forEach(function(row){
+      row.addEventListener('click', function(){
+        document.getElementById('projectReportModal').style.display = "flex";
+        document.getElementById('reportProjectName').value = row.dataset.name || '';
+        document.getElementById('reportProjectContractor').value = row.dataset.contractor || '';
+        document.getElementById('reportProjectMaterials').value = row.dataset.materials || '';
+        document.getElementById('reportProjectEstimatedTime').value = row.dataset.estimated_time || '';
+        document.getElementById('reportProjectMaterialCosts').value = row.dataset.material_costs || '';
+        document.getElementById('reportProjectLaborCosts').value = row.dataset.labor_costs || '';
+        document.getElementById('reportProjectStatus').value = row.dataset.status || '';
+        document.getElementById('reportProjectDesc').textContent =
+          "Información consolidada del " + (row.dataset.name || 'proyecto') + " para la generación del reporte.";
+      });
     });
-  });
-  document.getElementById('closeReport').addEventListener('click', function(){
-    document.getElementById('projectReportModal').style.display = "none";
-  });
-  document.getElementById('projectReportModal').addEventListener('click', function(e){
-    if(e.target === this){ this.style.display = "none"; }
-  });
+    const closeBtn = document.getElementById('closeReport');
+    if(closeBtn){ closeBtn.addEventListener('click', function(){ document.getElementById('projectReportModal').style.display = "none"; }); }
+    const modal = document.getElementById('projectReportModal');
+    if(modal){ modal.addEventListener('click', function(e){ if(e.target === this){ this.style.display = "none"; } }); }
 
-  // PDF export
-  document.getElementById('btnPdfReport').addEventListener('click', function(){
-    const nombre = document.getElementById('reportProjectName').value;
-    const contratista = document.getElementById('reportProjectContractor').value;
-    const materiales = document.getElementById('reportProjectMaterials').value;
-    const tiempo = document.getElementById('reportProjectEstimatedTime').value;
-    const costoMat = document.getElementById('reportProjectMaterialCosts').value;
-    const costoObra = document.getElementById('reportProjectLaborCosts').value;
-    const estado = document.getElementById('reportProjectStatus').value;
+    // PDF export
+    const btnPdf = document.getElementById('btnPdfReport');
+    if(btnPdf){ btnPdf.addEventListener('click', function(){
+      const nombre = document.getElementById('reportProjectName').value;
+      const contratista = document.getElementById('reportProjectContractor').value;
+      const materiales = document.getElementById('reportProjectMaterials').value;
+      const tiempo = document.getElementById('reportProjectEstimatedTime').value;
+      const costoMat = document.getElementById('reportProjectMaterialCosts').value;
+      const costoObra = document.getElementById('reportProjectLaborCosts').value;
+      const estado = document.getElementById('reportProjectStatus').value;
 
-    const doc = new window.jspdf.jsPDF();
-    doc.setFont('Inter', 'normal');
-    doc.setFontSize(18);
-    doc.text("Reporte de Proyecto", 20, 20);
-    doc.setFontSize(12);
-    doc.text([
-      `Nombre: ${nombre}`,
-      `Contratista: ${contratista}`,
-      `Materiales: ${materiales}`,
-      `Tiempo estimado: ${tiempo} semanas`,
-      `Costo de materiales: $${costoMat}`,
-      `Costo de mano de obra: $${costoObra}`,
-      `Estado actual: ${estado}`
-    ], 20, 40);
-    doc.save(`Reporte_${nombre.replace(/ /g,'_')}.pdf`);
+      const doc = new window.jspdf.jsPDF();
+      doc.setFont('Inter', 'normal');
+      doc.setFontSize(18);
+      doc.text("Reporte de Proyecto", 20, 20);
+      doc.setFontSize(12);
+      doc.text([
+        `Nombre: ${nombre}`,
+        `Contratista: ${contratista}`,
+        `Materiales: ${materiales}`,
+        `Tiempo estimado: ${tiempo} semanas`,
+        `Costo de materiales: $${costoMat}`,
+        `Costo de mano de obra: $${costoObra}`,
+        `Estado actual: ${estado}`
+      ], 20, 40);
+      doc.save(`Reporte_${nombre.replace(/ /g,'_')}.pdf`);
+    }); }
+
+    // Excel export
+    const btnExcel = document.getElementById('btnExcelReport');
+    if(btnExcel){ btnExcel.addEventListener('click', function(){
+      const nombre = document.getElementById('reportProjectName').value;
+      const contratista = document.getElementById('reportProjectContractor').value;
+      const materiales = document.getElementById('reportProjectMaterials').value;
+      const tiempo = document.getElementById('reportProjectEstimatedTime').value;
+      const costoMat = document.getElementById('reportProjectMaterialCosts').value;
+      const costoObra = document.getElementById('reportProjectLaborCosts').value;
+      const estado = document.getElementById('reportProjectStatus').value;
+
+      const wb = XLSX.utils.book_new();
+      const ws_data = [
+        ["Campo", "Valor"],
+        ["Nombre", nombre],
+        ["Contratista", contratista],
+        ["Materiales", materiales],
+        ["Tiempo estimado (semanas)", tiempo],
+        ["Costo de materiales ($)", costoMat],
+        ["Costo de mano de obra ($)", costoObra],
+        ["Estado actual", estado]
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+      XLSX.writeFile(wb, `Reporte_${nombre.replace(/ /g,'_')}.xlsx`);
+    }); }
+  }
+
+  // expose functions globally so layout's AJAX loader can call them
+  window.initAdminCharts = initAdminCharts;
+  window.initAdminUI = initAdminUI;
+
+  document.addEventListener('DOMContentLoaded', function(){
+    initAdminCharts();
+    initAdminUI();
   });
-
-  // Excel export
-  document.getElementById('btnExcelReport').addEventListener('click', function(){
-    const nombre = document.getElementById('reportProjectName').value;
-    const contratista = document.getElementById('reportProjectContractor').value;
-    const materiales = document.getElementById('reportProjectMaterials').value;
-    const tiempo = document.getElementById('reportProjectEstimatedTime').value;
-    const costoMat = document.getElementById('reportProjectMaterialCosts').value;
-    const costoObra = document.getElementById('reportProjectLaborCosts').value;
-    const estado = document.getElementById('reportProjectStatus').value;
-
-    const wb = XLSX.utils.book_new();
-    const ws_data = [
-      ["Campo", "Valor"],
-      ["Nombre", nombre],
-      ["Contratista", contratista],
-      ["Materiales", materiales],
-      ["Tiempo estimado (semanas)", tiempo],
-      ["Costo de materiales ($)", costoMat],
-      ["Costo de mano de obra ($)", costoObra],
-      ["Estado actual", estado]
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-    XLSX.writeFile(wb, `Reporte_${nombre.replace(/ /g,'_')}.xlsx`);
-  });
-});
 </script>
 @endsection

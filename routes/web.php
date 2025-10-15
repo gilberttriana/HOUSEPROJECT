@@ -40,6 +40,8 @@ Route::get('/dashboard/aprobaciones', function () {
     return view('dashboard.aprobaciones');
 })->name('aprobaciones.dashboard');
 Route::get('/dashboard/usuarios', [LoginController::class, 'gestionarUsuarios'])->name('usuarios.dashboard');
+// Ruta para cambiar rol de un usuario (POST)
+Route::post('/dashboard/usuarios/cambiar-rol', [LoginController::class, 'cambiarRol'])->name('usuarios.cambiarRol');
 Route::get('/proveedor/stock', [LoginController::class, 'stock'])->name('proveedor.stock');
 
 // En routes/web.php (mejor que GET)

@@ -2,6 +2,9 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
+  @if(session('success'))
+  <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
+  @endif
   <header class="flex justify-between items-center mb-8">
     <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Gestionar Usuarios</h2>
   </header>
@@ -50,7 +53,20 @@
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-            <button class="text-primary hover:text-primary/80">Cambiar Rol</button>
+            @if(auth()->check() && auth()->user()->rol === 'admin')
+            <form method="POST" action="{{ route('usuarios.cambiarRol') }}">
+              @csrf
+              <input type="hidden" name="usuario_id" value="{{ $usuario->id_usuario }}" />
+              <select name="rol" class="border rounded px-2 py-1 text-sm">
+                @foreach($roles as $r)
+                  <option value="{{ $r }}" {{ $usuario->rol === $r ? 'selected' : '' }}>{{ ucfirst($r) }}</option>
+                @endforeach
+              </select>
+              <button type="submit" class="ml-2 text-primary hover:text-primary/80">Guardar</button>
+            </form>
+            @else
+            <span class="text-gray-500">Sin permisos</span>
+            @endif
           </td>
         </tr>
         @empty
