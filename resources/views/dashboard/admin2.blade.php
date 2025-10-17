@@ -2,34 +2,90 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
+  <!-- Top bar -->
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-4xl font-bold text-[#F8F4EA]">Dashboard Administrador</h1>
+    <div class="flex items-center gap-4">
+      <div class="text-right mr-4">
+        <div class="text-sm text-[#F0EAD6]">{{ auth()->user()->nombre ?? 'Administrador' }}</div>
+        <div class="text-xs text-[#DAD2BC]">{{ ucfirst(auth()->user()->rol ?? 'administrador') }}</div>
+      </div>
+      <div class="w-12 h-12 rounded-full bg-cover bg-center" style="background-image: url('{{ auth()->user()->foto ?? 'https://i.pravatar.cc/100' }}')"></div>
+    </div>
+  </div>
+
   <!-- Resumen Ejecutivo -->
-  <section class="mb-10">
-    <h2 class="text-4xl font-bold text-white mb-8">Resumen Ejecutivo</h2>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="lg:col-span-2 bg-[#182234] border border-primary/20 rounded-xl p-6">
-        <h3 class="text-xl font-medium text-white mb-4">Estado de Proyectos</h3>
+      <div class="lg:col-span-2 bg-card-blue border border-accent-gold/8 rounded-xl p-6">
+        <h3 class="text-xl font-medium text-[#F8F4EA] mb-4">Resumen de Proyectos</h3>
         <div class="h-80 flex items-center justify-center">
           <canvas id="projectsChart" width="600" height="300"></canvas>
         </div>
       </div>
       <div class="space-y-8">
-        <div class="bg-[#182234] border border-primary/20 rounded-xl p-6 text-white">
-          <h3 class="text-lg font-medium">Proyectos en Curso</h3>
-          <p class="text-5xl font-bold mt-2">15</p>
+        <div class="bg-card-blue border border-accent-gold/6 rounded-xl p-6 text-[#F8F4EA]">
+          <h3 class="text-lg font-medium">Proyectos Activos</h3>
+          <p class="text-5xl font-bold mt-2">5</p>
         </div>
-        <div class="bg-[#182234] border border-primary/20 rounded-xl p-6 text-white">
-          <h3 class="text-lg font-medium">Proyectos por Aceptar</h3>
-          <p class="text-5xl font-bold mt-2">8</p>
+        <div class="bg-card-blue border border-accent-gold/6 rounded-xl p-6 text-[#F8F4EA]">
+          <h3 class="text-lg font-medium">Proyectos Completados</h3>
+          <p class="text-5xl font-bold mt-2">125</p>
         </div>
       </div>
     </div>
   </section>
+  <!-- Inventario de Materiales -->
+  <section class="mt-8">
+    <h2 class="text-3xl font-bold text-[#F8F4EA] mb-6">Inventario de Materiales</h2>
+    <div class="overflow-x-auto bg-card-blue border border-accent-gold/6 rounded-xl p-4">
+      <table class="w-full text-left">
+        <thead class="bg-accent-gold/6">
+          <tr>
+            <th class="p-3 text-sm font-semibold text-white">Material</th>
+            <th class="p-3 text-sm font-semibold text-white">Descripción</th>
+            <th class="p-3 text-sm font-semibold text-white">Cantidad</th>
+            <th class="p-3 text-sm font-semibold text-white">Estado</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-accent-gold/10">
+          @php
+            $sample = [
+              ['nombre'=>'Cemento','descripcion'=>'Saco 50kg','cantidad'=>120],
+              ['nombre'=>'Acero','descripcion'=>'Varilla 12mm','cantidad'=>0],
+              ['nombre'=>'Madera','descripcion'=>'Tablón 2x4','cantidad'=>45],
+              ['nombre'=>'Arena','descripcion'=>'m3 de arena fina','cantidad'=>10],
+            ];
+            $list = isset($materiales) ? $materiales : $sample;
+          @endphp
+          @foreach($list as $mat)
+            @php
+              $nombre = is_array($mat) ? ($mat['nombre'] ?? '—') : ($mat->nombre ?? '—');
+              $desc = is_array($mat) ? ($mat['descripcion'] ?? '-') : ($mat->descripcion ?? '-');
+              $qty = is_array($mat) ? ($mat['cantidad'] ?? 0) : ($mat->cantidad ?? 0);
+            @endphp
+            <tr>
+              <td class="p-3 text-white">{{ $nombre }}</td>
+              <td class="p-3 text-white/80">{{ $desc }}</td>
+              <td class="p-3 text-white">{{ $qty }}</td>
+              <td class="p-3">
+                @if($qty > 0)
+                  <span class="px-3 py-1 rounded-full bg-green-600 text-white text-sm">En stock</span>
+                @else
+                  <span class="px-3 py-1 rounded-full bg-red-600 text-white text-sm">Sin stock</span>
+                @endif
+              </td>
+            </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
+  </section>
   <!-- Tabla de proyectos -->
   <section>
-    <h2 class="text-3xl font-bold text-white mb-6">Proyectos</h2>
-    <div class="overflow-x-auto bg-[#182234] border border-primary/20 rounded-xl">
+    <h2 class="text-3xl font-bold text-[#F8F4EA] mb-6">Proyectos</h2>
+    <div class="overflow-x-auto bg-card-blue border border-accent-gold/6 rounded-xl">
       <table class="w-full text-left" id="projectsTable">
-        <thead class="bg-primary/20">
+        <thead class="bg-accent-gold/6">
           <tr>
             <th class="p-5 text-base font-semibold text-white">Nombre del Proyecto</th>
             <th class="p-5 text-base font-semibold text-white">Estado</th>
@@ -38,7 +94,7 @@
             <th class="p-5 text-base font-semibold text-white">Fecha de Finalización</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-primary/20">
+        <tbody class="divide-y divide-accent-gold/10">
           <tr class="cursor-pointer hover:bg-primary/10"
               data-name="Proyecto A"
               data-contractor="Constructora XYZ"

@@ -26,9 +26,7 @@ Route::get('/dashboard/maestro', function () {
     return view('dashboard.maestro');
 })->name('maestro.dashboard');
 
-Route::get('/dashboard/usuarios', function () {
-    return view('dashboard.usuarios');
-})->name('usuarios.dashboard');
+// Route for usuarios dashboard is handled by LoginController@gestionarUsuarios below
 
 // Rutas de autenticación
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -44,6 +42,8 @@ Route::get('/dashboard/aprobaciones', function () {
 Route::get('/dashboard/usuarios', [LoginController::class, 'gestionarUsuarios'])->name('usuarios.dashboard');
 // Ruta para cambiar rol de un usuario (POST)
 Route::post('/dashboard/usuarios/cambiar-rol', [LoginController::class, 'cambiarRol'])->name('usuarios.cambiarRol');
+// Ruta para generar reporte PDF de usuarios
+Route::get('/dashboard/usuarios/report', [LoginController::class, 'reportarUsuarios'])->name('usuarios.report');
 Route::get('/proveedor/stock', [LoginController::class, 'stock'])->name('proveedor.stock');
 
 // En routes/web.php (mejor que GET)
