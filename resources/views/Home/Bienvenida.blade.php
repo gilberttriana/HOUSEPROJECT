@@ -18,12 +18,13 @@
         <div class="logo">
             <img src="{{ asset('image/HoseBuilde.png') }}" alt="logo">
         </div>
-        
+
         <nav id="nav">
             <a href="#inicio" class="nav-link"><i class="fa fa-home"></i>Inicio</a>
             <a href="#services" class="nav-link"><i class="fa fa-cog"></i>Servicios</a>
             <a href="#contacto" class="nav-link"><i class="fa fa-phone" aria-hidden="true"></i>Contactanos</a>
-            <a href="#" class="nav-link"><i class="fa fa-sign-in"></i>Iniciar sesión</a>
+            <a href="#" class=" login-btn" >Iniciar sesión</a>
+
         </nav>
     </header>
 
@@ -33,10 +34,10 @@
             <p>Explora nuestra red de proveedores y accede fácilmente a productos
                  y servicios para tus proyectos de construcción con solo un click.</p>
             <a href="#" class="btn  login-btn" id="openLogin">Iniciar sesión</a>
-           
+
              <div class="more-info">
             <a href="#mas" class="text-link">Más sobre el sitio</a>
-            
+
             <a href="#mas" class="arrow-link">
                 <i class="fa fa-arrow-down" aria-hidden="true"></i>
             </a>
@@ -49,21 +50,21 @@
         <div class="about-text">
             <h3>¿Quiénes Somos? <i class="fa-solid fa-lightbulb"></i></h3>
             <p>
-                <span style="color: #e18011;">HouseBuild</span> es una plataforma innovadora 
-                pensada para aquellas personas que desean planificar o iniciar un proyecto de 
-                construcción sin necesidad de tener conocimientos previos sobre costos de materiales 
-                o disponibilidad en el mercado. Nuestro sistema integra catálogos actualizados de 
-                ferreterías e industrias locales, permitiendo a los usuarios comparar precios, 
-                calidad y variedad de productos en tiempo real. Además, <span style="color: #e18011;">HouseBuild</span> 
+                <span style="color: #e18011;">HouseBuild</span> es una plataforma innovadora
+                pensada para aquellas personas que desean planificar o iniciar un proyecto de
+                construcción sin necesidad de tener conocimientos previos sobre costos de materiales
+                o disponibilidad en el mercado. Nuestro sistema integra catálogos actualizados de
+                ferreterías e industrias locales, permitiendo a los usuarios comparar precios,
+                calidad y variedad de productos en tiempo real. Además, <span style="color: #e18011;">HouseBuild</span>
                 conecta a los clientes con profesionales activos del sector de la construcción,
-                ofreciendo la posibilidad de establecer contratos confiables y transparentes con 
-                maestros de obra, arquitectos e ingenieros. De esta manera, buscamos simplificar 
+                ofreciendo la posibilidad de establecer contratos confiables y transparentes con
+                maestros de obra, arquitectos e ingenieros. De esta manera, buscamos simplificar
                 la experiencia de construir, garantizando acceso a información clara,
                 proveedores cercanos y especialistas calificados, todo en un solo lugar y al alcance de un clic.
             </p>
              <p>
-                Nuestra meta es crear una comunidad digital donde cada proyecto, 
-                grande o pequeño, cuente con el respaldo de información actualizada, 
+                Nuestra meta es crear una comunidad digital donde cada proyecto,
+                grande o pequeño, cuente con el respaldo de información actualizada,
                 asesoría experta y las mejores opciones del mercado.
             </p>
         </div>
@@ -182,26 +183,26 @@
                         <i class="fas fa-eye-slash"></i>
                     </span>
                     </div>
-                    
+
                     <button type="submit" >Iniciar Sesión</button>
                     <p style="color: #c46a0e; font-size: 15px;">
                      No te has registrado?<a href="#" class="registri-btn">Click Aqui</a>
                     <a href="#" class="google-btn">
                     <i class="fab fa-google"></i>Continuar con Google
-                        </a> 
+                        </a>
                     </p>
-                
+
                 </form>
                 <p id="loginMessage"></p>
             </div>
-            
+
         </div>
 
          <!-- Modal De Registro -->
-         
+
         <div id="loginModal1" class="modal1" style="display: none;">
             <div class="modal-content1">
-                  <div class="alert-container-modal" id="registerAlertContainer"></div> 
+                  <div class="alert-container-modal" id="registerAlertContainer"></div>
                 <span class="close-btn" onclick="closeModal1()">&times;</span>
                 <h2>Registrate</h2>
                 <div class="logo1">
@@ -213,10 +214,10 @@
                         <input type="text" name="nombre" placeholder="Nombre" required autocomplete="off">
                         <input type="text" name="apellido" placeholder="Apellido" required autocomplete="off">
                         <input type="date" name="fecha_nac" placeholder="Nacimiento" required>
-                        
+
                         <input type="email" name="correo" placeholder="Correo" required autocomplete="off">
                         <input type="password" name="contrasena" placeholder="Contraseña" required>
-                    
+
                     <button type="submit">Registrar</button>
                 </form>
                 <p id="loginMessage1"></p>

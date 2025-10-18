@@ -3,6 +3,7 @@
 @section('content')
 <div x-data="modalReporte" class="container mx-auto flex-grow p-4 sm:p-6 lg:p-8">
     <h1 class="text-4xl font-black text-white mb-8">Panel de Proveedor</h1>
+
     <!-- Bloques resumen en fila y más pequeños -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-4">
         <div class="rounded-xl bg-[#182534] p-4 shadow flex flex-col items-center justify-center text-white">
@@ -18,7 +19,8 @@
             <span class="text-2xl font-bold">87</span>
         </div>
     </div>
-    <!-- Botón de Agregar Material deshabilitado debajo de los bloques -->
+
+    <!-- Botón de Agregar Material -->
     <div class="mb-10 flex justify-center">
         <button class="bg-primary text-white px-6 py-3 rounded-lg font-semibold shadow opacity-50 cursor-not-allowed" disabled>
             + Agregar Material
@@ -163,9 +165,7 @@
     </div>
 </div>
 
-<!-- Alpine.js (debe estar en tu layout principal) -->
 <script src="//unpkg.com/alpinejs" defer></script>
-<!-- jsPDF para exportar PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
     document.addEventListener('alpine:init', () => {
@@ -199,7 +199,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.setFontSize(18);
-            doc.setTextColor(34, 115, 212);
+            doc.setTextColor(17, 115, 212);
 
             // Detecta si es material o proyecto
             const tipoModal = document.querySelector('[x-show="open"] h2').textContent.includes('Material') ? 'material' : 'proyecto';

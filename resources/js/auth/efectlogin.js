@@ -21,7 +21,7 @@ function closeModal() {
     modalContent.style.transform = 'scale(1)';
     modalContent.style.opacity = '1';
     document.getElementById('loginForm').reset(); // borra los inputs
-    document.getElementById('loginMessage').textContent = ''; 
+    document.getElementById('loginMessage').textContent = '';
   }, 300); // igual al transition del CSS
 }
 
@@ -35,11 +35,13 @@ loginModal.addEventListener('click', function (e) {
   }
 });
 // Cerrar modal al hacer clic en cualquier link de navegación
-document.querySelectorAll('nav a').forEach(function(link){
+// Cerrar modal al hacer clic en cualquier link del nav excepto el botón de login
+document.querySelectorAll('nav a:not(.login-btn)').forEach(function(link){
     link.addEventListener('click', function(){
         closeModal();
     });
 });
+
 window.addEventListener('scroll', function() {
     const modal = document.getElementById('loginModal');
     if(modal.classList.contains('show')){
@@ -47,4 +49,3 @@ window.addEventListener('scroll', function() {
     }
 });
 
- 

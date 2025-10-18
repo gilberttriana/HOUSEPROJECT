@@ -17,9 +17,9 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: "#1173d4",
+                        primary: "#3b82f6",
                         "background-light": "#f6f7f8",
-                        "background-dark": "#101922",
+                        "background-dark": "#0f172a",
                     },
                     fontFamily: {
                         display: ["Inter", "Noto Sans"],
@@ -38,7 +38,7 @@
 <body class="bg-background-light dark:bg-background-dark font-display">
     <div class="flex min-h-screen">
         @include('components.sidebar-proveedor')
-        <main class="flex-1 p-8 lg:p-10 bg-background-light dark:bg-background-dark">
+        <main class="flex-1 p-8 lg:p-10 bg-background-light dark:bg-background-dark ml-72 overflow-y-auto min-h-screen">
             @yield('content')
         </main>
     </div>
