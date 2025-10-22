@@ -33,31 +33,35 @@
         <span class="material-symbols-outlined text-xl">approval</span>
         Aprobaciones de Proyectos
       </a>
-      @if(Route::has('materials'))
-      <a href="{{ route('materials') }}" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-white/80 hover:bg-primary/10 hover:text-primary transition-colors" data-section="materials">
-        <span class="material-symbols-outlined text-xl">inventory_2</span>
-        Gestión y Aprobación de Materiales
-      </a>
-      @endif
-      @if(Route::has('users'))
-      <a href="{{ route('users') }}" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-white/80 hover:bg-primary/10 hover:text-primary transition-colors" data-section="users">
-        <span class="material-symbols-outlined text-xl">group</span>
-        Gestión de Usuarios según su Rol
-      </a>
-      @endif
       <a href="{{ route('usuarios.dashboard') }}" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-[#ECE7D9] hover:bg-accent-gold/5 hover:text-accent-gold transition-colors">
         <span class="material-symbols-outlined text-xl">group</span>
         Gestión de Usuarios según su Rol
       </a>
       <!-- Sección de Acciones rápidas -->
-      <a href="#" class="sidebar-link opacity-50 pointer-events-none text-white">
-        <span class="material-symbols-outlined text-xl text-white">add_circle</span>
-        Agregar Proyecto <span class="text-white/70">(En construcción)</span>
-      </a>
-      <a href="#" class="sidebar-link opacity-50 pointer-events-none text-white">
-        <span class="material-symbols-outlined text-xl text-white">add_box</span>
-        Agregar Material <span class="text-white/70">(En construcción)</span>
-      </a>
+      @if(auth()->check() && in_array(auth()->user()->rol, ['admin','usuario']))
+        <a href="{{ route('proyectos.create') }}" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-white hover:bg-primary/10 hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-xl">add_circle</span>
+          Agregar Proyecto
+        </a>
+      @else
+        <a href="#" class="sidebar-link opacity-50 pointer-events-none text-white">
+          <span class="material-symbols-outlined text-xl text-white">add_circle</span>
+          Agregar Proyecto <span class="text-white/70">(Sin permiso)</span>
+        </a>
+      @endif
+
+      @if(auth()->check() && in_array(auth()->user()->rol, ['proveedor','admin']))
+        {{-- Abrir modal de creación en la vista de materiales (la vista index contiene el modal) --}}
+        <a href="{{ route('materiales.index') }}#nuevo" class="sidebar-link flex items-center gap-4 px-4 py-3 rounded-xl font-medium text-white hover:bg-primary/10 hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-xl">add_box</span>
+          Agregar Material
+        </a>
+      @else
+        <a href="#" class="sidebar-link opacity-50 pointer-events-none text-white">
+          <span class="material-symbols-outlined text-xl text-white">add_box</span>
+          Agregar Material <span class="text-white/70">(Sin permiso)</span>
+        </a>
+      @endif
       <!-- Fin acciones rápidas -->
     </nav>
   </div>

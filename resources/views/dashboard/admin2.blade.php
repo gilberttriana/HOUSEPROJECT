@@ -63,7 +63,7 @@
               $desc = is_array($mat) ? ($mat['descripcion'] ?? '-') : ($mat->descripcion ?? '-');
               $qty = is_array($mat) ? ($mat['cantidad'] ?? 0) : ($mat->cantidad ?? 0);
             @endphp
-            <tr>
+            <tr class="material-row cursor-pointer hover:bg-primary/5" data-nombre="{{ e($nombre) }}" data-descripcion="{{ e($desc) }}" data-cantidad="{{ $qty }}" data-fecha="{{ is_array($mat) ? ($mat['fecha_actualizacion'] ?? '') : ($mat->fecha_actualizacion ?? ($mat->FECHA_ACTUALIZACION ?? ($mat->updated_at ?? ''))) }}">
               <td class="p-3 text-white">{{ $nombre }}</td>
               <td class="p-3 text-white/80">{{ $desc }}</td>
               <td class="p-3 text-white">{{ $qty }}</td>
@@ -80,6 +80,7 @@
       </table>
     </div>
   </section>
+    @include('dashboard.partials.materials_report_modal')
   <!-- Tabla de proyectos -->
   <section>
     <h2 class="text-3xl font-bold text-[#F8F4EA] mb-6">Proyectos</h2>
@@ -333,7 +334,6 @@
           }
         }
       });
-      // store instance for potential destruction later
       ctx._chartInstance = chart;
     }
   }
@@ -385,34 +385,7 @@
         `Estado actual: ${estado}`
       ], 20, 40);
       doc.save(`Reporte_${nombre.replace(/ /g,'_')}.pdf`);
-    }); }
-
-    // Excel export
-    const btnExcel = document.getElementById('btnExcelReport');
-    if(btnExcel){ btnExcel.addEventListener('click', function(){
-      const nombre = document.getElementById('reportProjectName').value;
-      const contratista = document.getElementById('reportProjectContractor').value;
-      const materiales = document.getElementById('reportProjectMaterials').value;
-      const tiempo = document.getElementById('reportProjectEstimatedTime').value;
-      const costoMat = document.getElementById('reportProjectMaterialCosts').value;
-      const costoObra = document.getElementById('reportProjectLaborCosts').value;
-      const estado = document.getElementById('reportProjectStatus').value;
-
-      const wb = XLSX.utils.book_new();
-      const ws_data = [
-        ["Campo", "Valor"],
-        ["Nombre", nombre],
-        ["Contratista", contratista],
-        ["Materiales", materiales],
-        ["Tiempo estimado (semanas)", tiempo],
-        ["Costo de materiales ($)", costoMat],
-        ["Costo de mano de obra ($)", costoObra],
-        ["Estado actual", estado]
-      ];
-      const ws = XLSX.utils.aoa_to_sheet(ws_data);
-      XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-      XLSX.writeFile(wb, `Reporte_${nombre.replace(/ /g,'_')}.xlsx`);
-    }); }
+    });
   }
 
   // expose functions globally so layout's AJAX loader can call them
@@ -424,4 +397,5 @@
     initAdminUI();
   });
 </script>
+@include('dashboard.partials.materials_report_js')
 @endsection

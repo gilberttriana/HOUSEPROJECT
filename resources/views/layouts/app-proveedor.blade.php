@@ -17,9 +17,10 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: "#3b82f6",
+                        primary: "#d4af37", /* dorado/acento */
                         "background-light": "#f6f7f8",
-                        "background-dark": "#0f172a",
+                        "background-dark": "#3b2f2f", /* marrón oscuro */
+                        "card-blue": "#0f1724"
                     },
                     fontFamily: {
                         display: ["Inter", "Noto Sans"],

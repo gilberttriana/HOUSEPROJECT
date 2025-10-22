@@ -106,6 +106,12 @@
                   </select>
                   <button type="submit" class="ml-2 text-primary hover:text-primary/80">Guardar</button>
                 </form>
+                <!-- Formulario para eliminar usuario -->
+                <form method="POST" action="{{ route('usuarios.eliminar') }}" class="inline-block ml-2 delete-user-form">
+                  @csrf
+                  <input type="hidden" name="usuario_id" value="{{ $usuario->id_usuario }}" />
+                  <button type="submit" class="ml-2 text-red-600 hover:text-red-700 text-sm">Eliminar</button>
+                </form>
               @else
                 <div class="flex items-center space-x-2">
                   <select disabled class="border rounded px-2 py-1 text-sm bg-gray-100 text-gray-600" aria-disabled="true">
@@ -188,15 +194,22 @@
     const modal = document.getElementById('nuevoUsuarioModal');
     const close = document.getElementById('closeNuevoUsuario');
     const cancel = document.getElementById('cancelNuevoUsuario');
-    if(btn && modal){
-      // prevent adding duplicate listeners: remove by cloning
-      btn.replaceWith(btn.cloneNode(true));
-      const newBtn = document.getElementById('btnNuevoUsuario');
-      newBtn.addEventListener('click', function(){ modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(()=>{ modal.querySelector('input[name=nombre]')?.focus(); }, 10); });
+    if(btn && modal && !btn.dataset.listenerAttached){
+      btn.addEventListener('click', function(){ modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(()=>{ modal.querySelector('input[name=nombre]')?.focus(); }, 10); });
+      btn.dataset.listenerAttached = '1';
     }
-    if(close && modal){ close.replaceWith(close.cloneNode(true)); document.getElementById('closeNuevoUsuario').addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); }
-    if(cancel && modal){ cancel.replaceWith(cancel.cloneNode(true)); document.getElementById('cancelNuevoUsuario').addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); }
-    if(modal){ modal.addEventListener('click', function(e){ if(e.target === this){ this.classList.add('hidden'); this.classList.remove('flex'); } }); }
+    if(close && modal && !close.dataset.listenerAttached){
+      close.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); });
+      close.dataset.listenerAttached = '1';
+    }
+    if(cancel && modal && !cancel.dataset.listenerAttached){
+      cancel.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); });
+      cancel.dataset.listenerAttached = '1';
+    }
+    if(modal && !modal.dataset.clickGuard){
+      modal.addEventListener('click', function(e){ if(e.target === this){ this.classList.add('hidden'); this.classList.remove('flex'); } });
+      modal.dataset.clickGuard = '1';
+    }
   }
 
   window.initUsuariosModal = initUsuariosModal;
@@ -209,20 +222,13 @@
     const modal = document.getElementById('reporteModal');
     const close = document.getElementById('closeReporteModal');
     const cancel = document.getElementById('cancelReporte');
-    if(btn && modal){
-      // prevent duplicate listeners by cloning
-      btn.replaceWith(btn.cloneNode(true));
-      const newBtn = document.getElementById('btnAbrirReporte');
-      if(newBtn) newBtn.addEventListener('click', function(){ modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(()=>{ modal.querySelector('select[name=role]')?.focus(); }, 10); });
+    if(btn && modal && !btn.dataset.listenerAttached){
+      btn.addEventListener('click', function(){ modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(()=>{ modal.querySelector('select[name=role]')?.focus(); }, 10); });
+      btn.dataset.listenerAttached = '1';
     }
-    if(close && modal){ close.replaceWith(close.cloneNode(true)); const nc = document.getElementById('closeReporteModal'); if(nc) nc.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); }
-    if(cancel && modal){ cancel.replaceWith(cancel.cloneNode(true)); const can = document.getElementById('cancelReporte'); if(can) can.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); }
-    if(modal){
-      if(!modal._listenerAdded){
-        modal.addEventListener('click', function(e){ if(e.target === this){ this.classList.add('hidden'); this.classList.remove('flex'); } });
-        modal._listenerAdded = true;
-      }
-    }
+    if(close && modal && !close.dataset.listenerAttached){ close.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); close.dataset.listenerAttached = '1'; }
+    if(cancel && modal && !cancel.dataset.listenerAttached){ cancel.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); cancel.dataset.listenerAttached = '1'; }
+    if(modal && !modal.dataset.clickGuard){ modal.addEventListener('click', function(e){ if(e.target === this){ this.classList.add('hidden'); this.classList.remove('flex'); } }); modal.dataset.clickGuard = '1'; }
   }
   window.initReporteModal = initReporteModal;
   // Run on first load (handle case where DOMContentLoaded already fired)
@@ -231,51 +237,74 @@
   } else {
     initReporteModal();
   }
-  // Ensure it's called after AJAX navigation as well
-  if (typeof window.afterAjaxLoad === 'function'){
-    const __prevAfterReporte = window.afterAjaxLoad;
-    window.afterAjaxLoad = function(){ try{ initReporteModal(); }catch(e){ console.error(e); } __prevAfterReporte(); }
-  } else {
-    window.afterAjaxLoad = initReporteModal;
+  // helper to attach functions to afterAjaxLoad without duplicating or logging
+  function attachAfterAjaxLoad(fn){
+    const prev = window.afterAjaxLoad;
+    if (typeof prev === 'function'){
+      window.afterAjaxLoad = function(){ try{ fn(); }catch(e){} prev(); }
+    } else {
+      window.afterAjaxLoad = function(){ try{ fn(); }catch(e){} };
+    }
   }
+  attachAfterAjaxLoad(initReporteModal);
   
-  // AJAX submit for role change forms using event delegation
+  // AJAX submit for role change forms and delete forms using event delegation
   function initRoleChangeAjax(){
-    // ensure we only attach one delegated listener
     if(window._roleChangeDelegated) return; window._roleChangeDelegated = true;
     document.addEventListener('submit', async function(e){
       const form = e.target;
-      if(!form || !form.classList || !form.classList.contains('role-change-form')) return;
-      e.preventDefault();
-      // disable submit button to prevent double submits
-      const submitBtn = form.querySelector('button[type=submit]');
-      if(submitBtn) submitBtn.disabled = true;
-      const data = new FormData(form);
-      const tokenEl = document.querySelector('meta[name="csrf-token"]');
-      const token = tokenEl ? tokenEl.getAttribute('content') : '';
-      try{
-        const res = await fetch(form.action, { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' }, body: data });
-        const json = await res.json().catch(()=>({ success: false, message: 'Respuesta inválida' }));
-        if(res.ok && json.success){
-          showToast(json.message || 'Rol actualizado');
-          // determine new role from response or fallback to select value
-          const newRole = json.rol || form.querySelector('select[name=rol]')?.value;
-          // update the select to reflect the new role
-          const select = form.querySelector('select[name=rol]');
-          if(select && newRole) select.value = newRole;
-          // move the table row to the corresponding tbody for the new role
-          if(newRole){
-            const tr = form.closest('tr');
-            const destTbody = document.querySelector('tbody[data-rol="' + newRole + '"]');
-            if(tr && destTbody && tr.parentElement !== destTbody){
-              destTbody.appendChild(tr);
+      if(!form || !form.classList) return;
+
+      // --- Role change form handler ---
+      if(form.classList.contains('role-change-form')){
+        e.preventDefault();
+        const submitBtn = form.querySelector('button[type=submit]');
+        if(submitBtn) submitBtn.disabled = true;
+        const data = new FormData(form);
+        const tokenEl = document.querySelector('meta[name="csrf-token"]');
+        const token = tokenEl ? tokenEl.getAttribute('content') : '';
+        try{
+          const res = await fetch(form.action, { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' }, body: data });
+          const json = await res.json().catch(()=>({ success: false, message: 'Respuesta inválida' }));
+          if(res.ok && json.success){
+            showToast(json.message || 'Rol actualizado');
+            const newRole = json.rol || form.querySelector('select[name=rol]')?.value;
+            const select = form.querySelector('select[name=rol]'); if(select && newRole) select.value = newRole;
+            if(newRole){
+              const tr = form.closest('tr');
+              const destTbody = document.querySelector('tbody[data-rol="' + newRole + '"]');
+              if(tr && destTbody && tr.parentElement !== destTbody) destTbody.appendChild(tr);
             }
+          } else {
+            showToast(json.message || 'Error al actualizar', true);
           }
-        } else {
-          showToast(json.message || 'Error al actualizar', true);
-        }
-      }catch(err){ console.error(err); showToast('Error de red', true); }
-      finally{ if(submitBtn) submitBtn.disabled = false; }
+  }catch(err){ showToast('Error de red', true); }
+        finally{ if(submitBtn) submitBtn.disabled = false; }
+        return;
+      }
+
+      // --- Delete user form handler ---
+      if(form.classList.contains('delete-user-form')){
+        e.preventDefault();
+        if(!confirm('¿Confirmas que deseas eliminar este usuario? Esta acción no se puede deshacer.')) return;
+        const submitBtn = form.querySelector('button[type=submit]');
+        if(submitBtn) submitBtn.disabled = true;
+        const data = new FormData(form);
+        const tokenEl = document.querySelector('meta[name="csrf-token"]');
+        const token = tokenEl ? tokenEl.getAttribute('content') : '';
+        try{
+          const res = await fetch(form.action, { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' }, body: data });
+          const json = await res.json().catch(()=>({ success: false, message: 'Respuesta inválida' }));
+          if(res.ok && json.success){
+            showToast(json.message || 'Usuario eliminado');
+            const row = form.closest('tr'); if(row) row.remove();
+          } else {
+            showToast(json.message || 'Error al eliminar', true);
+          }
+  }catch(err){ showToast('Error de red', true); }
+        finally{ if(submitBtn) submitBtn.disabled = false; }
+        return;
+      }
     });
   }
 
@@ -293,12 +322,11 @@
 
   // ensure role-change AJAX handlers are bound after AJAX navigation
   document.addEventListener('DOMContentLoaded', function(){ initRoleChangeAjax(); });
-  if(typeof window.afterAjaxLoad === 'function'){
-    const prev = window.afterAjaxLoad;
-    window.afterAjaxLoad = function(){ try{ initRoleChangeAjax(); }catch(e){console.error(e);} prev(); }
-  } else {
-    window.afterAjaxLoad = initRoleChangeAjax;
-  }
+  // Attach initRoleChangeAjax to afterAjaxLoad safely (no console logging)
+  (function attachRoleChange(){
+    const prev = typeof window.afterAjaxLoad === 'function' ? window.afterAjaxLoad : null;
+    window.afterAjaxLoad = function(){ try{ initRoleChangeAjax(); }catch(e){} if(prev) prev(); };
+  })();
 </script>
 @endsection
 @endsection

@@ -1,7 +1,7 @@
-<aside class="fixed inset-y-0 left-0 flex flex-col justify-between w-72 bg-[#0f172a] border-r border-[#334155] shadow-lg overflow-y-auto">
+<aside class="fixed inset-y-0 left-0 flex flex-col justify-between w-72 bg-[#0f172a] border-r border-[#273449] shadow-lg overflow-y-auto">
     <!-- Perfil proveedor -->
     <div class="flex flex-col items-center pt-10 pb-8">
-        <div class="bg-white rounded-full p-2 shadow mb-4">
+        <div class="bg-[#f5e6c1] rounded-full p-2 shadow mb-4 border border-[#223146]">
             <img src="{{ asset('image/HoseBuilde.png') }}" alt="Proveedor Logo" class="w-16 h-16 object-contain rounded-full">
         </div>
 
@@ -9,7 +9,7 @@
             <h2 class="text-xl font-bold text-white text-center mb-1 leading-tight">
                 {{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
             </h2>
-            <span class="text-[#3b82f6] font-semibold text-center mb-2">Proveedor</span>
+            <span class="text-[#d4af37] font-semibold text-center mb-2">Proveedor</span>
             <div class="text-xs text-white/80 text-center leading-relaxed space-y-1 px-4 mb-2">
                 <div><span class="font-medium">Correo:</span> <span class="whitespace-nowrap">{{ Auth::user()->correo }}</span></div>
                 <div><span class="font-medium">ID Proveedor:</span> <span>{{ Auth::user()->id_usuario }}</span></div>
@@ -27,12 +27,12 @@
     </div>
 
     <!-- Botón cerrar sesión -->
-    <div class="px-6 pb-8 border-t border-[#334155]">
+    <div class="px-6 pb-8 border-t border-[#273449]">
         @if(Auth::check())
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
-                    class="w-full py-3 rounded-xl bg-[#3b82f6] text-white font-bold text-base tracking-wide flex items-center justify-center gap-2 hover:bg-[#2563eb] transition shadow-lg">
+                    class="w-full py-3 rounded-xl bg-[#d4af37] text-[#0f1724] font-bold text-base tracking-wide flex items-center justify-center gap-2 hover:bg-[#b78f2a] transition shadow-lg">
                     <span class="material-symbols-outlined">logout</span>
                     Cerrar sesión
                 </button>

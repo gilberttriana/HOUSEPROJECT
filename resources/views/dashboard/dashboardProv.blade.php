@@ -6,15 +6,15 @@
 
     <!-- Bloques resumen en fila y más pequeños -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-4">
-        <div class="rounded-xl bg-[#182534] p-4 shadow flex flex-col items-center justify-center text-white">
+        <div class="rounded-xl bg-card-blue p-4 shadow flex flex-col items-center justify-center text-white">
             <h2 class="text-base font-semibold mb-2">Materiales Publicados</h2>
             <span class="text-2xl font-bold">125</span>
         </div>
-        <div class="rounded-xl bg-[#182534] p-4 shadow flex flex-col items-center justify-center text-white">
+        <div class="rounded-xl bg-card-blue p-4 shadow flex flex-col items-center justify-center text-white">
             <h2 class="text-base font-semibold mb-2">Proyectos Activos</h2>
             <span class="text-2xl font-bold">32</span>
         </div>
-        <div class="rounded-xl bg-[#182534] p-4 shadow flex flex-col items-center justify-center text-white">
+        <div class="rounded-xl bg-card-blue p-4 shadow flex flex-col items-center justify-center text-white">
             <h2 class="text-base font-semibold mb-2">Materiales en Uso</h2>
             <span class="text-2xl font-bold">87</span>
         </div>
@@ -29,7 +29,7 @@
 
     <!-- Tabla Materiales -->
     <h3 class="text-2xl font-bold tracking-tight mb-4 text-white">Estado de Materiales</h3>
-    <div class="overflow-x-auto rounded-xl bg-[#182534] shadow mb-12">
+    <div class="overflow-x-auto rounded-xl bg-card-blue shadow mb-12">
         <table class="min-w-full divide-y divide-[#20304A] text-white">
             <thead class="bg-[#20304A] text-white">
                 <tr>
@@ -76,7 +76,7 @@
 
     <!-- Tabla Proyectos -->
     <h3 class="text-2xl font-bold tracking-tight mb-4 text-white">Proyectos con tus Materiales</h3>
-    <div class="overflow-x-auto rounded-xl bg-[#182534] shadow">
+    <div class="overflow-x-auto rounded-xl bg-card-blue shadow">
         <table class="min-w-full divide-y divide-[#20304A] text-white">
             <thead class="bg-[#20304A] text-white">
                 <tr>
@@ -195,41 +195,100 @@
     });
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Enhance PDF export with a decorated layout
+        const currentUserName = "{{ Auth::user()->nombre ?? 'Usuario' }} {{ Auth::user()->apellido ?? '' }}";
         document.getElementById('btnExportarPdf').addEventListener('click', function() {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.setFontSize(18);
-            doc.setTextColor(17, 115, 212);
+            const doc = new jsPDF('p', 'pt', 'a4');
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
 
             // Detecta si es material o proyecto
             const tipoModal = document.querySelector('[x-show="open"] h2').textContent.includes('Material') ? 'material' : 'proyecto';
 
-            doc.setFontSize(14);
-            doc.setTextColor(33, 40, 58);
+            // Header band
+            doc.setFillColor(212,175,55); // dorado
+            doc.rect(0, 0, pageWidth, 56, 'F');
+            doc.setFontSize(18);
+            doc.setTextColor(15, 15, 15);
+            const title = tipoModal === 'material' ? 'Reporte de Material' : 'Reporte de Proyecto';
+            doc.text(title, 40, 38);
+            // Generated timestamp on right
+            const genDate = new Date();
+            const genStr = genDate.toLocaleString();
+            doc.setFontSize(10);
+            doc.setTextColor(20,20,20);
+            doc.text(`Generado: ${genStr}`, pageWidth - 40, 38, { align: 'right' });
 
+            // Prepare rows
+            const padLeft = 40;
+            const labelWidth = 140;
+            const startY = 90;
+            let rows = [];
             if (tipoModal === 'material') {
-                doc.text('Reporte de Material', 20, 20);
-                doc.setFontSize(12);
-                doc.setTextColor(33, 40, 58);
-                doc.text([
-                    `Material: ${document.getElementById('inputMaterial').value}`,
-                    `Estado: ${document.getElementById('inputEstado').value}`,
-                    `Stock: ${document.getElementById('inputStock').value}`,
-                    `Última Actualización: ${document.getElementById('inputFecha').value}`
-                ], 20, 35);
-                doc.save(`Reporte_Material_${document.getElementById('inputMaterial').value.replace(/ /g,'_')}.pdf`);
+                rows = [
+                    ['Material', document.getElementById('inputMaterial').value || '-'],
+                    ['Estado', document.getElementById('inputEstado').value || '-'],
+                    ['Stock', document.getElementById('inputStock').value || '-'],
+                    ['Última actualización', document.getElementById('inputFecha').value || '-']
+                ];
             } else {
-                doc.text('Reporte de Proyecto', 20, 20);
-                doc.setFontSize(12);
-                doc.setTextColor(33, 40, 58);
-                doc.text([
-                    `Proyecto: ${document.getElementById('inputProyecto').value}`,
-                    `Ubicación: ${document.getElementById('inputUbicacion').value}`,
-                    `Materiales: ${document.getElementById('inputMateriales').value}`,
-                    `Estado: ${document.getElementById('inputEstadoProyecto').value}`
-                ], 20, 35);
-                doc.save(`Reporte_Proyecto_${document.getElementById('inputProyecto').value.replace(/ /g,'_')}.pdf`);
+                rows = [
+                    ['Proyecto', document.getElementById('inputProyecto').value || '-'],
+                    ['Ubicación', document.getElementById('inputUbicacion').value || '-'],
+                    ['Materiales', document.getElementById('inputMateriales').value || '-'],
+                    ['Estado', document.getElementById('inputEstadoProyecto').value || '-']
+                ];
             }
+
+            // Draw a simple table-like layout
+            let y = startY;
+            const rowH = 24;
+            for (let i = 0; i < rows.length; i++) {
+                const label = rows[i][0];
+                const value = rows[i][1];
+
+                // label cell background
+                doc.setFillColor(245,245,245);
+                doc.rect(padLeft, y - 16, labelWidth, rowH, 'F');
+                // value cell background
+                doc.setFillColor(255,255,255);
+                doc.rect(padLeft + labelWidth, y - 16, pageWidth - padLeft - labelWidth - 40, rowH, 'F');
+
+                // label text
+                doc.setFontSize(11);
+                doc.setTextColor(30,30,30);
+                doc.text(label, padLeft + 8, y);
+
+                // value text (wrap if needed)
+                doc.setFontSize(11);
+                doc.setTextColor(40,40,40);
+                const split = doc.splitTextToSize(value, pageWidth - padLeft - labelWidth - 60);
+                doc.text(split, padLeft + labelWidth + 8, y);
+
+                y += Math.max(rowH, split.length * 12);
+                y += 6;
+                // check page break
+                if (y > pageHeight - 80) {
+                    doc.addPage();
+                    y = 60;
+                }
+            }
+
+            // Footer: author & page
+            const footerY = pageHeight - 40;
+            doc.setFontSize(9);
+            doc.setTextColor(120,120,120);
+            doc.text(`Impreso por: ${currentUserName}`, 40, footerY);
+            const totalPages = doc.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.text(`Página ${i} / ${totalPages}`, pageWidth - 40, footerY, { align: 'right' });
+            }
+
+            // Save
+            const safeName = (tipoModal === 'material' ? (document.getElementById('inputMaterial').value || 'material') : (document.getElementById('inputProyecto').value || 'proyecto')).replace(/[^a-z0-9-_]/gi,'_');
+            doc.save(`${title.replace(/\s+/g,'_')}_${safeName}_${genDate.toISOString().replace(/[:.]/g,'')}.pdf`);
         });
     });
 </script>

@@ -238,4 +238,61 @@ class LoginController extends Controller
             ->header('Content-Disposition', 'attachment; filename="usuarios_report_' . now()->format('Ymd_His') . '.html"');
     }
 
+    // Eliminar usuario (solo admin)
+    public function eliminarUsuario(Request $request)
+    {
+        $request->validate([
+            'usuario_id' => 'required|integer|exists:usuarios,id_usuario',
+        ]);
+
+        $actor = Auth::user();
+        if (!$actor || $actor->rol !== 'admin') {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+            }
+            return redirect()->back()->with('error', 'No autorizado.');
+        }
+
+        $usuario = Usuario::find($request->usuario_id);
+        if (!$usuario) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Usuario no encontrado.'], 404);
+            }
+            return redirect()->back()->with('error', 'Usuario no encontrado.');
+        }
+
+        // No permitir eliminarse a sí mismo
+        if ($actor->id_usuario === $usuario->id_usuario) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'No puedes eliminar tu propia cuenta.'], 403);
+            }
+            return redirect()->back()->with('error', 'No puedes eliminar tu propia cuenta.');
+        }
+
+        // No permitir eliminar al último admin
+        if ($usuario->rol === 'admin') {
+            $adminCount = Usuario::where('rol', 'admin')->count();
+            if ($adminCount <= 1) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'No se puede eliminar al último administrador.'], 403);
+                }
+                return redirect()->back()->with('error', 'No se puede eliminar al último administrador.');
+            }
+        }
+
+        // Proceder a eliminar
+        try {
+            $usuario->delete();
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Usuario eliminado correctamente.', 'usuario_id' => $usuario->id_usuario]);
+            }
+            return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Error al eliminar usuario.'], 500);
+            }
+            return redirect()->back()->with('error', 'Error al eliminar usuario.');
+        }
+    }
+
 }

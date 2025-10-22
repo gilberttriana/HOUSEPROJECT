@@ -49,40 +49,21 @@
   @yield('scripts')
   <script>
     // Defined here so it's always available even when pages are loaded via AJAX.
-    if (typeof window.initUsuariosModal !== 'function') {
+      if (typeof window.initUsuariosModal !== 'function') {
       function initUsuariosModal(){
         try{
           const btn = document.getElementById('btnNuevoUsuario');
           const modal = document.getElementById('nuevoUsuarioModal');
           const close = document.getElementById('closeNuevoUsuario');
           const cancel = document.getElementById('cancelNuevoUsuario');
-          if(btn && modal){
-           
-            const cloned = btn.cloneNode(true);
-            btn.parentNode.replaceChild(cloned, btn);
-            cloned.addEventListener('click', function(){
-              modal.classList.remove('hidden'); modal.classList.add('flex');
-              setTimeout(()=>{ modal.querySelector('input[name=nombre]')?.focus(); }, 10);
-            });
+          if(btn && modal && !btn.dataset.listenerAttached){
+            btn.addEventListener('click', function(){ modal.classList.remove('hidden'); modal.classList.add('flex'); setTimeout(()=>{ modal.querySelector('input[name=nombre]')?.focus(); }, 10); });
+            btn.dataset.listenerAttached = '1';
           }
-          if(close && modal){
-            const clonedClose = close.cloneNode(true);
-            close.parentNode.replaceChild(clonedClose, close);
-            clonedClose.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); });
-          }
-          if(cancel && modal){
-            const clonedCancel = cancel.cloneNode(true);
-            cancel.parentNode.replaceChild(clonedCancel, cancel);
-            clonedCancel.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); });
-          }
-          if(modal){
-            // prevent multiple identical listeners: remove if exists by setting a flag
-            if(!modal._listenerAdded){
-              modal.addEventListener('click', function(e){ if(e.target === this){ this.classList.add('hidden'); this.classList.remove('flex'); } });
-              modal._listenerAdded = true;
-            }
-          }
-        }catch(err){ console.error('initUsuariosModal error', err); }
+          if(close && modal && !close.dataset.listenerAttached){ close.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); close.dataset.listenerAttached = '1'; }
+          if(cancel && modal && !cancel.dataset.listenerAttached){ cancel.addEventListener('click', function(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }); cancel.dataset.listenerAttached = '1'; }
+          if(modal && !modal.dataset.clickGuard){ modal.addEventListener('click', function(e){ if(e.target === this){ this.classList.add('hidden'); this.classList.remove('flex'); } }); modal.dataset.clickGuard = '1'; }
+        }catch(err){ /* initUsuariosModal error suppressed for cleaner logs */ }
       }
       window.initUsuariosModal = initUsuariosModal;
       document.addEventListener('DOMContentLoaded', function(){ window.initUsuariosModal(); });
@@ -112,13 +93,13 @@
           if(!href || href === '#') return;
             if(e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
           if(a.target && a.target.toLowerCase() !== '_self') return;
-  
+
           let urlObj;
-          try{ urlObj = new URL(href, location.origin); } catch(err){ console.debug('AJAXNav: invalid URL', href); return; }
+          try{ urlObj = new URL(href, location.origin); } catch(err){ return; }
           if(urlObj.origin !== location.origin) return; 
           e.preventDefault();
           const fetchUrl = urlObj.pathname + urlObj.search + (urlObj.hash ? ('#' + urlObj.hash.replace(/^#/,'')) : '');
-          console.debug('AJAXNav: fetching', fetchUrl);
+          
           fetchPage(fetchUrl, true);
         });
         
@@ -129,7 +110,7 @@
       }
 
       async function fetchPage(url, push){
-        try{
+          try{
           const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
           if(!res.ok) throw new Error('Network error');
           const text = await res.text();
@@ -148,32 +129,25 @@
               const inlineScripts = Array.from(newMain.querySelectorAll('script'));
               inlineScripts.forEach(s => {
                 const scriptEl = document.createElement('script');
-                if (s.src) {
-                  scriptEl.src = s.src;
-                  // ensure external scripts preserve order
-                  scriptEl.async = false;
-                } else {
-                  scriptEl.textContent = s.textContent;
-                }
+                if (s.src) { scriptEl.src = s.src; scriptEl.async = false; } else { scriptEl.textContent = s.textContent; }
                 document.body.appendChild(scriptEl);
-                // remove the script tag from the parsed node to avoid double-execution if needed
               });
-            } catch(execErr){ console.error('Error executing fetched scripts', execErr); }
+            } catch(execErr){ /* suppressed script exec error */ }
 
             try {
-                if (typeof window.initAdminCharts === 'function') { try { window.initAdminCharts(); } catch(e){ console.error('initAdminCharts failed', e); } }
-                if (typeof window.initAdminUI === 'function') { try { window.initAdminUI(); } catch(e){ console.error('initAdminUI failed', e); } }
+                if (typeof window.initAdminCharts === 'function') { try { window.initAdminCharts(); } catch(e){} }
+                if (typeof window.initAdminUI === 'function') { try { window.initAdminUI(); } catch(e){} }
 
-                if (typeof window.initUsuariosModal === 'function') { try { window.initUsuariosModal(); } catch(e){ console.error('initUsuariosModal failed', e); } }
-                if (typeof window.initRoleChangeAjax === 'function') { try { window.initRoleChangeAjax(); } catch(e){ console.error('initRoleChangeAjax failed', e); } }
-                if (typeof window.initReporteModal === 'function') { try { window.initReporteModal(); } catch(e){ console.error('initReporteModal failed', e); } }
-                if (typeof window.afterAjaxLoad === 'function') { try { window.afterAjaxLoad(); } catch (e) { console.error('afterAjaxLoad hook failed', e); } }
-              } catch(err){ console.error('Error running page initializers', err); }
+                if (typeof window.initUsuariosModal === 'function') { try { window.initUsuariosModal(); } catch(e){} }
+                if (typeof window.initRoleChangeAjax === 'function') { try { window.initRoleChangeAjax(); } catch(e){} }
+                if (typeof window.initReporteModal === 'function') { try { window.initReporteModal(); } catch(e){} }
+                if (typeof window.afterAjaxLoad === 'function') { try { window.afterAjaxLoad(); } catch (e) {} }
+              } catch(err){ /* suppressed initializer errors */ }
           } else {
             window.location.href = url;
           }
         }catch(err){
-          console.error('AJAX navigation failed', err);
+          // navigation failed silently; fallback to full page load
           window.location.href = url; 
         }
       }

@@ -27,18 +27,18 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 260px;
+    width: 220px; /* reducido */
     background-color: var(--primary-color);
     color: var(--text-color);
-    transition: width 0.3s ease-in-out;
+    transition: width 0.25s ease-in-out;
     display: flex;
     flex-direction: column;
-    padding: 20px 0;
+    padding: 14px 0; /* menos padding */
     overflow-x: hidden;
 }
 
 .sidebar.collapsed {
-    width: 80px;
+    width: 70px; /* colapsado un poco mas pequeño */
 }
 
 .sidebar-header {
@@ -58,22 +58,22 @@ body {
 }
 
 .profile-info-minimal h3 {
-    font-size: 1.1rem;
+    font-size: 1rem; /* ligeramente menor */
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
-    margin-right: 15px; /* Add some space between the name and button */
+    margin-right: 10px; /* menos espacio */
 }
 
 .toggle-btn {
     background: none;
     border: none;
     color: var(--text-color);
-    font-size: 1.5rem;
+    font-size: 1.2rem; /* un poco mas pequeño */
     cursor: pointer;
     align-self: center;
     position: relative;
-    left: -20px;
+    left: -12px;
 }
 
 /* Hide the profile name when the menu is collapsed */
@@ -92,10 +92,11 @@ body {
 .sidebar-nav li a {
     display: flex;
     align-items: center;
-    padding: 15px 20px;
+    padding: 12px 16px; /* menos padding */
     color: var(--text-color);
     text-decoration: none;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease;
+    font-size: 0.95rem; /* ligeramente menor */
 }
 
 .sidebar-nav li a:hover,
@@ -104,9 +105,9 @@ body {
 }
 
 .sidebar-nav li a i {
-    font-size: 1.2rem;
-    margin-right: 15px;
-    transition: margin 0.3s ease;
+    font-size: 1.05rem; /* ligeramente menor */
+    margin-right: 12px;
+    transition: margin 0.25s ease;
 }
 
 .sidebar.collapsed .sidebar-nav li a i {
@@ -168,7 +169,7 @@ body {
 /* Main Content */
 .main-content {
     flex-grow: 1;
-    padding: 40px;
+    padding: 24px; /* mas compacto */
 }
 
 .main-header {
@@ -176,7 +177,7 @@ body {
 }
 
 .welcome-message h1 {
-    font-size: 2rem;
+    font-size: 1.6rem; /* tamaño menor para cabecera */
     font-weight: 600;
     color: var(--primary-color);
 }
@@ -185,7 +186,7 @@ body {
     background-color: var(--card-bg);
     border-radius: 8px;
     box-shadow: var(--shadow);
-    padding: 30px;
+    padding: 18px; /* padding mas pequeño */
 }
 
 .profile-info-minimal {
@@ -207,7 +208,7 @@ body {
 /* Rol debajo del nombre */
 .profile-info-minimal .role {
     grid-area: role;
-    font-size:  15px;
+    font-size:  13px; /* menor */
     color: #e18011;
     margin-top: 2px;
 }
@@ -233,8 +234,8 @@ body {
     cursor: pointer;
     display: block;
     position: relative;
-    width: 45px;
-    height: 45px;
+    width: 38px; /* mas pequeño */
+    height: 38px;
     border-radius: 50%;
     overflow: hidden;
     border: 2px solid var(--accent-color);
