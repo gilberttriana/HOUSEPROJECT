@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto">
   <!-- Top bar -->
-  <div class="flex items-center justify-between mb-8">
+    <div class="flex items-center justify-between mb-8">
     <h1 class="text-4xl font-bold text-[#F8F4EA]">Dashboard Administrador</h1>
     <div class="flex items-center gap-4">
       <div class="text-right mr-4">
@@ -15,64 +15,93 @@
   </div>
 
   <!-- Resumen Ejecutivo -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="lg:col-span-2 bg-card-blue border border-accent-gold/8 rounded-xl p-6">
-        <h3 class="text-xl font-medium text-[#F8F4EA] mb-4">Resumen de Proyectos</h3>
-        <div class="h-80 flex items-center justify-center">
-          <canvas id="projectsChart" width="600" height="300"></canvas>
-        </div>
-      </div>
-      <div class="space-y-8">
-        <div class="bg-card-blue border border-accent-gold/6 rounded-xl p-6 text-[#F8F4EA]">
-          <h3 class="text-lg font-medium">Proyectos Activos</h3>
-          <p class="text-5xl font-bold mt-2">5</p>
-        </div>
-        <div class="bg-card-blue border border-accent-gold/6 rounded-xl p-6 text-[#F8F4EA]">
-          <h3 class="text-lg font-medium">Proyectos Completados</h3>
-          <p class="text-5xl font-bold mt-2">125</p>
-        </div>
-      </div>
+  
+  @php
+    $totalProyectos = isset($proyectos) ? $proyectos->count() : \App\Models\Proyecto::count();
+    $activo = 0; $cancelado = 0; $espera = 0;
+    if (isset($proyectos) && $proyectos instanceof \Illuminate\Support\Collection){
+      foreach($proyectos as $pp){
+        $s = strtolower(trim($pp->estado ?? ''));
+        if ($s === ''){ // treat empty as waiting
+          $espera++;
+        } elseif (strpos($s,'activo') !== false){
+          $activo++;
+        } elseif (strpos($s,'cancel') !== false){
+          $cancelado++;
+        } elseif (strpos($s,'esper') !== false || strpos($s,'pend') !== false){
+          $espera++;
+        }
+      }
+    } else {
+      // fallback to DB counts if collection not available
+      $activo = \App\Models\Proyecto::whereRaw("lower(estado) like ?", ['%activo%'])->count();
+      $cancelado = \App\Models\Proyecto::whereRaw("lower(estado) like ?", ['%cancel%'])->count();
+      $espera = \App\Models\Proyecto::whereRaw("lower(estado) like ?", ['%esper%'])->count();
+    }
+  @endphp
+
+  <!-- Contadores horizontales simplificados -->
+  <div class="flex flex-col lg:flex-row gap-4 mb-6">
+    <div class="flex-1 bg-card-blue border border-accent-gold/6 rounded-xl p-6 text-[#F8F4EA] text-center">
+      <h3 class="text-lg font-medium">Activos</h3>
+      <p class="text-4xl font-bold mt-2">{{ $activo }}</p>
     </div>
-  </section>
+    <div class="flex-1 bg-card-blue border border-accent-gold/6 rounded-xl p-6 text-[#F8F4EA] text-center">
+      <h3 class="text-lg font-medium">Cancelados</h3>
+      <p class="text-4xl font-bold mt-2">{{ $cancelado }}</p>
+    </div>
+    <div class="flex-1 bg-card-blue border border-accent-gold/6 rounded-xl p-6 text-[#F8F4EA] text-center">
+      <h3 class="text-lg font-medium">En espera</h3>
+      <p class="text-4xl font-bold mt-2">{{ $espera }}</p>
+    </div>
+  </div>
+
   <!-- Inventario de Materiales -->
   <section class="mt-8">
     <h2 class="text-3xl font-bold text-[#F8F4EA] mb-6">Inventario de Materiales</h2>
-    <div class="overflow-x-auto bg-card-blue border border-accent-gold/6 rounded-xl p-4">
-      <table class="w-full text-left">
+    <div class="overflow-x-auto bg-card-blue border border-accent-gold/6 rounded-xl p-6">
+      <table class="w-full text-left" id="materialsTable">
         <thead class="bg-accent-gold/6">
           <tr>
-            <th class="p-3 text-sm font-semibold text-white">Material</th>
-            <th class="p-3 text-sm font-semibold text-white">Descripción</th>
-            <th class="p-3 text-sm font-semibold text-white">Cantidad</th>
-            <th class="p-3 text-sm font-semibold text-white">Estado</th>
+            <th class="p-5 text-base font-semibold text-white">Material</th>
+            <th class="p-5 text-base font-semibold text-white">Descripción</th>
+            <th class="p-5 text-base font-semibold text-white">Cantidad</th>
+            <th class="p-5 text-base font-semibold text-white">Estado</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-accent-gold/10">
           @php
             $sample = [
-              ['nombre'=>'Cemento','descripcion'=>'Saco 50kg','cantidad'=>120],
-              ['nombre'=>'Acero','descripcion'=>'Varilla 12mm','cantidad'=>0],
-              ['nombre'=>'Madera','descripcion'=>'Tablón 2x4','cantidad'=>45],
-              ['nombre'=>'Arena','descripcion'=>'m3 de arena fina','cantidad'=>10],
+              ['nombre'=>'Cemento','descripcion'=>'Saco 50kg','cantidad'=>120,'precio'=>'50.00'],
+              ['nombre'=>'Acero','descripcion'=>'Varilla 12mm','cantidad'=>0,'precio'=>'150.00'],
+              ['nombre'=>'Madera','descripcion'=>'Tablón 2x4','cantidad'=>45,'precio'=>'25.00'],
             ];
-            $list = isset($materiales) ? $materiales : $sample;
+            $list = isset($materiales) ? $materiales : collect($sample);
           @endphp
           @foreach($list as $mat)
             @php
-              $nombre = is_array($mat) ? ($mat['nombre'] ?? '—') : ($mat->nombre ?? '—');
-              $desc = is_array($mat) ? ($mat['descripcion'] ?? '-') : ($mat->descripcion ?? '-');
-              $qty = is_array($mat) ? ($mat['cantidad'] ?? 0) : ($mat->cantidad ?? 0);
+              $nombre = data_get($mat, 'nombre', data_get($mat, 'NOMBRE', '—'));
+              $qty = intval(data_get($mat, 'cantidad') ?? data_get($mat, 'stock') ?? data_get($mat, 'CANTIDAD') ?? 0);
+                $estRaw = data_get($mat, 'estado') ?? data_get($mat, 'ESTADO') ?? 'pendiente';
+                $estadoInfo = \App\Helpers\EstadoHelper::normalize($estRaw);
+                $label = $estadoInfo['label'];
+                $statusClass = $estadoInfo['class'];
+              $desc = data_get($mat, 'descripcion') ?? data_get($mat, 'DESCRIPCION') ?? '';
+              $fecha = data_get($mat, 'updated_at') ? (
+                
+                (is_string(data_get($mat,'updated_at')) ? 
+                  
+                  
+                  
+                  data_get($mat,'updated_at') : data_get($mat,'updated_at')->format('Y-m-d'))
+              ) : '';
             @endphp
-            <tr class="material-row cursor-pointer hover:bg-primary/5" data-nombre="{{ e($nombre) }}" data-descripcion="{{ e($desc) }}" data-cantidad="{{ $qty }}" data-fecha="{{ is_array($mat) ? ($mat['fecha_actualizacion'] ?? '') : ($mat->fecha_actualizacion ?? ($mat->FECHA_ACTUALIZACION ?? ($mat->updated_at ?? ''))) }}">
-              <td class="p-3 text-white">{{ $nombre }}</td>
-              <td class="p-3 text-white/80">{{ $desc }}</td>
-              <td class="p-3 text-white">{{ $qty }}</td>
-              <td class="p-3">
-                @if($qty > 0)
-                  <span class="px-3 py-1 rounded-full bg-green-600 text-white text-sm">En stock</span>
-                @else
-                  <span class="px-3 py-1 rounded-full bg-red-600 text-white text-sm">Sin stock</span>
-                @endif
+            <tr class="material-row cursor-pointer hover:bg-primary/10" data-id="{{ data_get($mat,'id_material') ?? data_get($mat,'id') ?? '' }}" data-nombre="{{ e($nombre) }}" data-descripcion="{{ e($desc) }}" data-cantidad="{{ $qty }}" data-estado="{{ e($estRaw) }}" data-fecha="{{ $fecha }}">
+              <td class="p-5 text-base text-white font-medium">{{ $nombre }}</td>
+              <td class="p-5 text-base text-white/80">{{ $desc }}</td>
+              <td class="p-5 text-base text-white">{{ $qty }}</td>
+              <td class="p-5 text-base">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $statusClass }}">{{ $label }}</span>
               </td>
             </tr>
           @endforeach
@@ -80,10 +109,12 @@
       </table>
     </div>
   </section>
-    @include('dashboard.partials.materials_report_modal')
+  <!-- Modal de exportar materiales eliminado: solo se mostrará la tabla de materiales -->
   <!-- Tabla de proyectos -->
   <section>
-    <h2 class="text-3xl font-bold text-[#F8F4EA] mb-6">Proyectos</h2>
+    <div class="flex items-center justify-between">
+      <h2 class="text-3xl font-bold text-[#F8F4EA] mb-6">Proyectos</h2>
+    </div>
     <div class="overflow-x-auto bg-card-blue border border-accent-gold/6 rounded-xl">
       <table class="w-full text-left" id="projectsTable">
         <thead class="bg-accent-gold/6">
@@ -96,125 +127,104 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-accent-gold/10">
+          @if(isset($proyectos) && $proyectos->count())
+        @foreach($proyectos as $p)
+          @php
+          $name = $p->nombre ?? $p->nombre_proyecto ?? 'Proyecto';
+          $estado = $p->estado ?? $p->status ?? 'En Curso';
+          $inicio = $p->fecha_inicio ?? $p->fecha_inicio_estimado ?? ($p->created_at ?? '');
+          $fin = $p->fecha_fin ?? $p->fecha_finalizacion ?? '';
+        // Preferir el valor persistido en DB (`progreso`) para que la UI muestre la verdad de la BD.
+        if (isset($p->progreso) && is_numeric($p->progreso)){
+          $progreso = intval(max(0, min(100, $p->progreso)));
+        } elseif (isset($p->progress) && is_numeric($p->progress)){
+          $progreso = intval(max(0, min(100, $p->progress)));
+        } elseif (isset($p->computed_progress) && is_numeric($p->computed_progress)){
+          $progreso = intval(max(0, min(100, $p->computed_progress)));
+        } else {
+          // Calcular desde fechas como fallback
+          $progreso = null;
+          if (false) {
+          }
+          else {
+            try{
+              $now = \Carbon\Carbon::now();
+              $start = null; $end = null;
+              if (!empty($p->fecha_inicio) || !empty($p->fecha_inicio_estimado)){
+                $start = \Carbon\Carbon::parse($p->fecha_inicio ?? $p->fecha_inicio_estimado);
+              } elseif (!empty($p->created_at)){
+                $start = \Carbon\Carbon::parse($p->created_at);
+              }
+              if (!empty($p->fecha_fin) || !empty($p->fecha_finalizacion)){
+                $end = \Carbon\Carbon::parse($p->fecha_fin ?? $p->fecha_finalizacion);
+              }
+              if ($start && $end){
+                if ($end->lessThanOrEqualTo($start)){
+                  $progreso = $now->greaterThanOrEqualTo($end) ? 100 : 0;
+                } else {
+                  $total = max(1, $end->diffInDays($start));
+                  $elapsed = max(0, min($total, $now->diffInDays($start)));
+                  $progreso = intval(round(($elapsed / $total) * 100));
+                }
+              } elseif ($start && !$end){
+                $progreso = 0;
+              } elseif ($end && !$start){
+                $progreso = $now->greaterThanOrEqualTo($end) ? 100 : 0;
+              } else {
+                $progreso = 0;
+              }
+            } catch (\Throwable $e) { $progreso = 0; }
+          }
+          $progreso = intval(max(0, min(100, $progreso)));
+        }
+          $materialsListString = '';
+          if(isset($p->materiales) && $p->materiales->count()){
+            $materialsListString = $p->materiales->map(function($m){
+              $qty = intval($m->pivot->cantidad ?? 0);
+              return ($m->nombre ?? ($m->NOMBRE ?? '')) . ($qty ? ' x'.$qty : '');
+            })->implode(', ');
+          }
+          @endphp
           <tr class="cursor-pointer hover:bg-primary/10"
-              data-name="Proyecto A"
-              data-contractor="Constructora XYZ"
-              data-materials="Cemento, Acero, Madera, Vidrio"
-              data-estimated_time="24"
-              data-material_costs="100000"
-              data-labor_costs="50000"
-              data-status="En Curso">
-            <td class="p-5 text-base text-white font-medium"><span class="hover:underline">Proyecto A</span></td>
-            <td class="p-5 text-base">
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/20 text-primary">En Curso</span>
-            </td>
-            <td class="p-5 text-base text-white">
-              <div class="flex items-center gap-3">
-                <div class="w-32 bg-primary/20 rounded-full h-2.5">
-                  <div class="bg-primary h-2.5 rounded-full" style="width: 60%"></div>
-                </div>
-                <span>60%</span>
-              </div>
-            </td>
-            <td class="p-5 text-base text-white">2025-01-15</td>
-            <td class="p-5 text-base text-white">2025-06-30</td>
-          </tr>
-          <tr class="cursor-pointer hover:bg-primary/10"
-              data-name="Proyecto B"
-              data-contractor="Constructora ABC"
-              data-materials="Acero, Arena, Ladrillo"
-              data-estimated_time="18"
-              data-material_costs="80000"
-              data-labor_costs="40000"
-              data-status="Completado">
-            <td class="p-5 text-base text-white font-medium"><span class="hover:underline">Proyecto B</span></td>
-            <td class="p-5 text-base">
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-500/20 text-green-500">Completado</span>
-            </td>
-            <td class="p-5 text-base text-white">
-              <div class="flex items-center gap-3">
-                <div class="w-32 bg-primary/20 rounded-full h-2.5">
-                  <div class="bg-primary h-2.5 rounded-full" style="width: 100%"></div>
-                </div>
-                <span>100%</span>
-              </div>
-            </td>
-            <td class="p-5 text-base text-white">2025-11-01</td>
-            <td class="p-5 text-base text-white">2026-03-15</td>
-          </tr>
-          <tr class="cursor-pointer hover:bg-primary/10"
-              data-name="Proyecto C"
-              data-contractor="Constructora QRS"
-              data-materials="Madera, Vidrio"
-              data-estimated_time="14"
-              data-material_costs="45000"
-              data-labor_costs="32000"
-              data-status="En Curso">
-            <td class="p-5 text-base text-white font-medium"><span class="hover:underline">Proyecto C</span></td>
-            <td class="p-5 text-base">
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/20 text-primary">En Curso</span>
-            </td>
-            <td class="p-5 text-base text-white">
-              <div class="flex items-center gap-3">
-                <div class="w-32 bg-primary/20 rounded-full h-2.5">
-                  <div class="bg-primary h-2.5 rounded-full" style="width: 30%"></div>
-                </div>
-                <span>30%</span>
-              </div>
-            </td>
-            <td class="p-5 text-base text-white">2025-02-20</td>
-            <td class="p-5 text-base text-white">2025-08-20</td>
-          </tr>
-          <tr class="cursor-pointer hover:bg-primary/10"
-              data-name="Proyecto D"
-              data-contractor="Constructora DEF"
-              data-materials="Hormigón, Arena"
-              data-estimated_time="20"
-              data-material_costs="70000"
-              data-labor_costs="37000"
-              data-status="En Espera">
-            <td class="p-5 text-base text-white font-medium"><span class="hover:underline">Proyecto D</span></td>
-            <td class="p-5 text-base">
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-500/20 text-yellow-500">En Espera</span>
-            </td>
-            <td class="p-5 text-base text-white">
-              <div class="flex items-center gap-3">
-                <div class="w-32 bg-primary/20 rounded-full h-2.5">
-                  <div class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
-                </div>
-                <span>0%</span>
-              </div>
-            </td>
-            <td class="p-5 text-base text-white">2025-03-10</td>
-            <td class="p-5 text-base text-white">2025-09-10</td>
-          </tr>
-          <tr class="cursor-pointer hover:bg-primary/10"
-              data-name="Proyecto E"
-              data-contractor="Constructora ZZZ"
-              data-materials="Cemento, Hierro"
-              data-estimated_time="16"
-              data-material_costs="60000"
-              data-labor_costs="28000"
-              data-status="En Curso">
-            <td class="p-5 text-base text-white font-medium"><span class="hover:underline">Proyecto E</span></td>
-            <td class="p-5 text-base">
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/20 text-primary">En Curso</span>
-            </td>
-            <td class="p-5 text-base text-white">
-              <div class="flex items-center gap-3">
-                <div class="w-32 bg-primary/20 rounded-full h-2.5">
-                  <div class="bg-primary h-2.5 rounded-full" style="width: 85%"></div>
-                </div>
-                <span>85%</span>
-              </div>
-            </td>
-            <td class="p-5 text-base text-white">2024-12-05</td>
-            <td class="p-5 text-base text-white">2025-05-05</td>
-          </tr>
+            data-name="{{ e($name) }}"
+            data-contractor="{{ e($p->contratista ?? $p->contratista_nombre ?? '') }}"
+            data-materials="{{ e($materialsListString) }}"
+            data-estimated_time="{{ e($p->duracion_estimada ?? '') }}"
+            data-material_costs="{{ e($p->costo_materiales ?? '') }}"
+            data-labor_costs="{{ e($p->costo_mano_obra ?? '') }}"
+            data-status="{{ e($estado) }}"
+            data-computed-progress="{{ intval($p->computed_progress ?? $progreso ?? 0) }}">
+                <td class="p-5 text-base text-white font-medium"><span class="hover:underline">{{ $name }}</span></td>
+                @php
+                  $estadoInfo = \App\Helpers\EstadoHelper::normalize($estado);
+                  $estadoLabel = $estadoInfo['label'];
+                  $estadoClass = $estadoInfo['class'];
+                @endphp
+                <td class="p-5 text-base">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $estadoClass }}">{{ $estadoLabel }}</span>
+                </td>
+                <td class="p-5 text-base text-white">
+                  <div class="flex items-center gap-3">
+                    <div class="w-32 bg-primary/20 rounded-full h-2.5">
+                      <div class="bg-primary h-2.5 rounded-full" style="width: {{ intval($progreso) }}%"></div>
+                    </div>
+                    <span>{{ intval($progreso) }}%</span>
+                  </div>
+                </td>
+                <td class="p-5 text-base text-white">{{ $inicio }}</td>
+                <td class="p-5 text-base text-white">{{ $fin }}</td>
+              </tr>
+            @endforeach
+          @else
+            <tr>
+              <td class="p-5 text-base text-white" colspan="5">No hay proyectos registrados.</td>
+            </tr>
+          @endif
         </tbody>
       </table>
     </div>
   </section>
+  @include('dashboard.partials.project_modal', ['materialsList' => $materialsList ?? collect()])
 </div>
 <!-- MODAL DEL REPORTE DE PROYECTO -->
 <div id="projectReportModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" style="display:none;">
@@ -276,68 +286,10 @@
 @endsection
 
 @section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.2/xlsx.full.min.js"></script>
 <script>
   // Expose initialization functions so they can be called after AJAX page loads
-  function initAdminCharts(){
-    // Chart.js
-    const ctx = document.getElementById('projectsChart');
-    if (ctx) {
-      const isDarkMode = document.documentElement.classList.contains('dark');
-      const gridColor = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-      const textColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
-      // destroy existing Chart instance if present to avoid duplicates
-      if (ctx._chartInstance) {
-        try{ ctx._chartInstance.destroy(); } catch(e){}
-      }
-      const chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: ['Proyecto A', 'Proyecto B', 'Proyecto C', 'Proyecto D', 'Proyecto E'],
-          datasets: [{
-            label: 'Progreso del Proyecto (%)',
-            data: [60, 100, 30, 0, 85],
-            backgroundColor: [
-              'rgba(17, 115, 212, 0.6)',
-              'rgba(34, 197, 94, 0.6)',
-              'rgba(17, 115, 212, 0.6)',
-              'rgba(234, 179, 8, 0.6)',
-              'rgba(17, 115, 212, 0.6)'
-            ],
-            borderColor: [
-              'rgba(17, 115, 212, 1)',
-              'rgba(34, 197, 94, 1)',
-              'rgba(17, 115, 212, 1)',
-              'rgba(234, 179, 8, 1)',
-              'rgba(17, 115, 212, 1)'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              grid: { color: gridColor },
-              ticks: { color: textColor }
-            },
-            x: {
-              grid: { display: false },
-              ticks: { color: textColor }
-            }
-          },
-          plugins: {
-            legend: { labels: { color: textColor } }
-          }
-        }
-      });
-      ctx._chartInstance = chart;
-    }
-  }
-
   function initAdminUI(){
     // Modal JS puro: attach listeners to rows and buttons
     document.querySelectorAll('#projectsTable tbody tr').forEach(function(row){
@@ -389,13 +341,12 @@
   }
 
   // expose functions globally so layout's AJAX loader can call them
-  window.initAdminCharts = initAdminCharts;
   window.initAdminUI = initAdminUI;
 
   document.addEventListener('DOMContentLoaded', function(){
-    initAdminCharts();
     initAdminUI();
   });
 </script>
-@include('dashboard.partials.materials_report_js')
+<!-- scripts for materials export removed -->
+@include('dashboard.partials.project_js')
 @endsection

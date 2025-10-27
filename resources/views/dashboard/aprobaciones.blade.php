@@ -19,20 +19,39 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-background-light/10 dark:divide-white/10">
-          <tr class="hover:bg-primary/10 dark:hover:bg-primary/10">
-            <td class="px-4 py-3 font-medium text-[#101922] dark:text-white">Project Alpha</td>
-            <td class="px-4 py-3 text-[#101922]/80 dark:text-white/80">Sophia Clark</td>
-            <td class="px-4 py-3 text-[#101922]/80 dark:text-white/80">2024-01-15</td>
-            <td class="max-w-xs truncate px-4 py-3 text-[#101922]/80 dark:text-white/80" style="word-wrap:break-word; overflow-wrap:break-word;">A new initiative to enhance user engagement.</td>
-            <td class="px-4 py-3 text-right whitespace-nowrap">
-              <div class="flex items-center justify-end gap-3">
-                <button class="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-[#101922]/80 hover:bg-primary/20 dark:text-white/80 dark:hover:bg-primary/30">Ver detalles</button>
-                <button class="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-xs font-medium text-white hover:bg-primary/90">Aprobar</button>
-                <button class="inline-flex h-8 items-center justify-center rounded-md border border-background-light/10 px-3 text-xs font-medium text-[#101922]/80 hover:bg-primary/20 dark:border-white/10 dark:text-white/80 dark:hover:bg-primary/30">Rechazar</button>
-              </div>
-            </td>
-          </tr>
-          <!-- Puedes añadir más filas aquí -->
+          @if(isset($proyectos) && $proyectos->count())
+            @foreach($proyectos as $p)
+              @php
+                $name = $p->nombre ?? $p->nombre_proyecto ?? 'Proyecto';
+                $solicitante = $p->usuario->nombre ?? ($p->nombre_usuario ?? 'Solicitante');
+                $fecha = $p->fecha_inicio_estimado ?? $p->created_at ?? '';
+                $resumen = \Illuminate\Support\Str::limit($p->descripcion ?? '-', 150);
+              @endphp
+              <tr class="hover:bg-primary/10 dark:hover:bg-primary/10">
+                <td class="px-4 py-3 font-medium text-[#101922] dark:text-white">{{ $name }}</td>
+                <td class="px-4 py-3 text-[#101922]/80 dark:text-white/80">{{ $solicitante }}</td>
+                <td class="px-4 py-3 text-[#101922]/80 dark:text-white/80">{{ $fecha }}</td>
+                <td class="px-4 py-3 text-[#101922]/80 dark:text-white/80 break-words whitespace-normal" style="word-wrap:break-word; overflow-wrap:break-word;">{{ $resumen }}</td>
+                <td class="px-4 py-3 text-right whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-3">
+                    <a href="#" class="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-[#101922]/80 hover:bg-primary/20 dark:text-white/80 dark:hover:bg-primary/30">Ver detalles</a>
+                    <form method="POST" action="{{ route('proyectos.aprobar', ['id' => $p->id_proyecto ?? $p->id]) }}" style="display:inline">
+                      @csrf
+                      <button type="submit" class="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-xs font-medium text-white hover:bg-primary/90">Aprobar</button>
+                    </form>
+                    <form method="POST" action="{{ route('proyectos.rechazar', ['id' => $p->id_proyecto ?? $p->id]) }}" style="display:inline">
+                      @csrf
+                      <button type="submit" class="inline-flex h-8 items-center justify-center rounded-md border border-background-light/10 px-3 text-xs font-medium text-[#101922]/80 hover:bg-primary/20 dark:border-white/10 dark:text-white/80 dark:hover:bg-primary/30">Rechazar</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            @endforeach
+          @else
+            <tr>
+              <td class="px-4 py-3 font-medium text-[#101922] dark:text-white" colspan="5">No hay proyectos pendientes de aprobación.</td>
+            </tr>
+          @endif
         </tbody>
       </table>
     </div>

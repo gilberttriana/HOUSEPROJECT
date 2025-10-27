@@ -135,7 +135,6 @@
             } catch(execErr){ /* suppressed script exec error */ }
 
             try {
-                if (typeof window.initAdminCharts === 'function') { try { window.initAdminCharts(); } catch(e){} }
                 if (typeof window.initAdminUI === 'function') { try { window.initAdminUI(); } catch(e){} }
 
                 if (typeof window.initUsuariosModal === 'function') { try { window.initUsuariosModal(); } catch(e){} }

@@ -2,21 +2,25 @@
 
 @section('content')
 <div class="max-w-3xl mx-auto">
-  <h2 class="text-2xl font-bold mb-4">Nuevo Proyecto</h2>
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-2xl font-bold">Proyectos</h2>
+    <div>
+      <button id="btnAddProject" class="inline-flex items-center gap-2 bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-primary/90">+
+        Agregar Proyecto
+      </button>
+    </div>
+  </div>
+
   @if($errors->any())<div class="mb-4 text-red-600">{{ $errors->first() }}</div>@endif
-  <form method="POST" action="{{ route('proyectos.store') }}">
-    @csrf
-    <div class="mb-3">
-      <label class="block text-sm">Nombre</label>
-      <input name="nombre" class="w-full border px-3 py-2 rounded" required />
-    </div>
-    <div class="mb-3">
-      <label class="block text-sm">Descripción</label>
-      <textarea name="descripcion" class="w-full border px-3 py-2 rounded"></textarea>
-    </div>
-    <div class="flex justify-end">
-      <button class="px-4 py-2 bg-primary text-white rounded">Crear</button>
-    </div>
-  </form>
+
+  {{-- Lista de proyectos --}}
+  @include('dashboard.proyectos.partials.projects_list')
+
+  {{-- Modal de creación (partial) --}}
+  @include('dashboard.proyectos.partials.project_modal', ['materialsList' => $materialsList ?? collect()])
 </div>
+@endsection
+
+@section('scripts')
+  @include('dashboard.proyectos.partials.project_js')
 @endsection

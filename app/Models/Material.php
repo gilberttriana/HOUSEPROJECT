@@ -31,6 +31,11 @@ class Material extends Model
         return $this->belongsTo(Proveedor::class, 'id_proveedor', 'id_proveedor');
     }
 
+    public function proyectos()
+    {
+        return $this->belongsToMany(\App\Models\Proyecto::class, 'proyecto_material', 'id_material', 'id_proyecto');
+    }
+
     // Mapear columna ESTADO o estado a atributo -> estado
     public function getEstadoAttribute()
     {

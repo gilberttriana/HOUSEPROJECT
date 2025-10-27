@@ -15,7 +15,7 @@
         <div><strong>Material:</strong> <span id="matName">-</span></div>
         <div><strong>Descripción:</strong> <span id="matDesc">-</span></div>
         <div><strong>Cantidad:</strong> <span id="matQty">-</span></div>
-        <div><strong>Actualizado:</strong> <span id="matFecha">-</span></div>
+        <div><strong>Estado:</strong> <span id="matEstado">-</span></div>
       </div>
 
       <div class="pt-4 flex gap-3">

@@ -193,4 +193,21 @@ class MaterialController extends Controller
         $m->save();
         return response()->json(['ok'=>true]);
     }
+
+    // Devuelve todos los materiales en JSON (para export/API)
+    public function allJson(Request $request)
+    {
+        $materials = Material::orderBy('nombre')->get()->map(function($m){
+            return [
+                'id' => $m->id_material ?? $m->id ?? null,
+                'nombre' => $m->nombre,
+                'descripcion' => $m->descripcion,
+                'cantidad' => $m->stock ?? $m->cantidad ?? 0,
+                'estado' => $m->estado ?? null,
+                'precio' => $m->precio ?? null,
+                'updated_at' => $m->updated_at ?? null,
+            ];
+        });
+        return response()->json($materials);
+    }
 }
