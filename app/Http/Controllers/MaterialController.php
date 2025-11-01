@@ -8,6 +8,7 @@ use App\Models\Usuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use App\Services\MaterialService;
 
 class MaterialController extends Controller
 {
@@ -57,17 +58,17 @@ class MaterialController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-        
             'id_proveedor' => 'required|integer',
             'nombre' => 'required|string|max:150',
             'unidad' => 'nullable|string|max:50',
             'precio' => 'required|numeric',
             'stock' => 'nullable|integer',
-            'imagen' => 'nullable|image|max:2048',
+            // soportar subida múltiple: 'imagen' puede ser array de archivos
+            'imagen' => 'nullable',
+            'imagen.*' => 'image|max:2048',
             'descripcion' => 'nullable|string|max:500'
         ]);
-
-    $usuario = Auth::user();
+        $usuario = Auth::user();
         if(!$usuario) return redirect()->back()->with('error', 'Autenticación requerida');
 
         // Solo proveedores y administradores pueden crear materiales
@@ -75,30 +76,30 @@ class MaterialController extends Controller
             return redirect()->back()->with('error', 'No tienes permisos para crear materiales');
         }
 
-            // Resolver id_proveedor desde usuario con rol 'proveedor'
-            $userId = intval($request->input('id_proveedor'));
-            $user = Usuario::find($userId);
-            if(!$user || $user->rol !== 'proveedor'){
-                return redirect()->back()->with('error','Usuario seleccionado no es un proveedor válido');
-            }
-            $prov = $user->proveedor;
-            if(!$prov){
-                $prov = Proveedor::create([
-                    'usuario_id' => $user->id_usuario,
-                    'empresa' => trim($user->nombre . ' ' . $user->apellido),
-                ]);
-            }
-            $provId = $prov->id_proveedor;
+        // Usar servicio para crear y obtener contadores
+        $service = new MaterialService();
+        $result = $service->createForUser($request, $usuario);
 
-    $data = $request->only(['nombre','unidad','precio','stock','descripcion']);
-        $data['estado'] = $request->input('estado', 'pendiente');
-        $data['id_proveedor'] = $provId;
-        if($request->hasFile('imagen')){
-            $path = $request->file('imagen')->store('materiales','public');
-            $data['imagen'] = $path;
+        $material = $result['material'];
+        $prov = $result['proveedor'];
+
+        if ($request->expectsJson() || $request->ajax()) {
+            try{
+                $usuarioProv = $prov->usuario ?? null;
+                $usuarioId = $usuarioProv ? $usuarioProv->id_usuario : null;
+                $label = $prov->empresa ?? ($usuarioProv ? ($usuarioProv->nombre . ' ' . ($usuarioProv->apellido ?? '')) : null);
+                $material->id_usuario_proveedor = $usuarioId;
+                $material->proveedor_label = $label;
+                $material->primary_image_url = $material->primary_image_url ?? null;
+                return response()->json([
+                    'ok' => true,
+                    'material' => $material,
+                    'counters' => $result['counters'] ?? null
+                ], 201);
+            }catch(\Throwable $e){
+                return response()->json(['ok' => false, 'error' => 'Error al crear material'], 500);
+            }
         }
-
-        Material::create($data);
 
         return redirect()->route('materiales.index')->with('success', 'Material creado correctamente');
     }
@@ -122,38 +123,54 @@ class MaterialController extends Controller
             'unidad' => 'nullable|string|max:50',
             'precio' => 'required|numeric',
             'stock' => 'nullable|integer',
-            'imagen' => 'nullable|image|max:2048',
-         
+            'imagen' => 'nullable',
+            'imagen.*' => 'image|max:2048',
             'id_proveedor' => 'required|integer',
             'estado' => 'nullable|in:pendiente,aprobado,desaprobado',
             'descripcion' => 'nullable|string|max:500'
         ]);
 
-        $userId = intval($request->input('id_proveedor'));
-        $user = Usuario::find($userId);
-        if(!$user || $user->rol !== 'proveedor'){
-            return redirect()->back()->with('error','Usuario seleccionado no es un proveedor válido');
-        }
-        $prov = $user->proveedor;
-        if(!$prov){
-            $prov = Proveedor::create([
-                'usuario_id' => $user->id_usuario,
-                'empresa' => trim($user->nombre . ' ' . $user->apellido),
-            ]);
+        // Sólo reasignar id_proveedor si el request incluye explícitamente ese campo
+        // Esto previene que actualizaciones parciales (p.ej. cambio de estado) sobrescriban
+        // o borren la asociación al proveedor accidentalmente.
+        $prov = null;
+        if ($request->has('id_proveedor')) {
+            $userId = intval($request->input('id_proveedor'));
+            $user = Usuario::find($userId);
+            if(!$user || $user->rol !== 'proveedor'){
+                // Si el request envía un id_proveedor inválido, ignorar la reasignación
+                $user = null;
+            }
+            if($user){
+                $prov = $user->proveedor;
+                if(!$prov){
+                    $prov = Proveedor::create([
+                        'usuario_id' => $user->id_usuario,
+                        'empresa' => trim($user->nombre . ' ' . $user->apellido),
+                    ]);
+                }
+            }
         }
 
-        
         $m->nombre = $request->input('nombre', $m->nombre);
         $m->unidad = $request->input('unidad', $m->unidad);
         $m->precio = $request->input('precio', $m->precio);
         $m->descripcion = $request->input('descripcion', $m->descripcion);
         $m->stock = $request->input('stock', $m->stock);
         if($request->hasFile('imagen')){
-            $path = $request->file('imagen')->store('materiales','public');
-            $m->imagen = $path;
+            $files = $request->file('imagen');
+            $paths = [];
+            if(is_array($files)){
+                foreach($files as $f){ $paths[] = $f->store('materiales','public'); }
+            } else {
+                $paths[] = $files->store('materiales','public');
+            }
+            $m->imagen = json_encode($paths);
         }
-        // asignar el id_proveedor real
-        if($prov) $m->id_proveedor = $prov->id_proveedor;
+        // asignar el id_proveedor real sólo si se resolvió arriba
+        if(!empty($prov)) {
+            $m->id_proveedor = $prov->id_proveedor;
+        }
 
         
         $m->estado = $request->input('estado', $m->estado);

@@ -17,19 +17,52 @@ Route::get('/dashboard/usuario', function () {
 Route::get('/dashboard/admin', function () {
     // Cargar materiales y proyectos y pasarlos a la vista para mostrar inventario y proyectos en el dashboard
     try {
-        $materiales = App\Models\Material::all()->map(function($m){
-            $arr = $m->toArray();
+        // Eager-load proveedor y usuario; mapear a formato ligero para la vista.
+        $materiales = App\Models\Material::with('proveedor.usuario')->orderBy('nombre')->get()->map(function($m){
+            $prov = $m->proveedor ?? null;
+            $provUser = $prov && isset($prov->usuario) ? $prov->usuario : null;
+            $empresa = trim((string) ($prov->empresa ?? ''));
+            $provLabel = null;
+            if($prov){
+                $provLabel = $empresa !== '' ? $empresa . ($provUser ? ' (' . ($provUser->nombre ?? 'Usuario '.$prov->usuario_id) . ')' : '') : ($provUser ? (($provUser->nombre ?? '') . ' ' . ($provUser->apellido ?? '')) : null);
+            }
+
+            // intentar resolver URL de imagen primaria de forma segura
+            $imgUrl = null;
+            try{
+                $rawImg = $m->imagen ?? null;
+                if (!empty($rawImg)){
+                    $dec = json_decode($rawImg, true);
+                    if(is_array($dec) && count($dec)) $first = $dec[0]; else $first = $rawImg;
+                    if(preg_match('#^https?://#i', $first)) $imgUrl = $first;
+                    elseif(\Illuminate\Support\Facades\Storage::disk('public')->exists($first)) $imgUrl = \Illuminate\Support\Facades\Storage::url($first);
+                    elseif(strpos($first, 'materiales/') === 0) $imgUrl = asset('storage/' . ltrim($first, '/'));
+                } else {
+                    $imgUrl = $m->primary_image_url ?? null;
+                }
+            }catch(\Throwable $e){ $imgUrl = null; }
+
             return [
-                'id' => $arr['id_material'] ?? $m->id_material ?? null,
-                'nombre' => $arr['nombre'] ?? '-',
-                'descripcion' => $arr['descripcion'] ?? $arr['DESCRIPCION'] ?? '-',
-                'cantidad' => $arr['stock'] ?? $arr['cantidad'] ?? 0,
-                'estado' => $arr['estado'] ?? $m->estado ?? $arr['ESTADO'] ?? null,
-                'fecha_actualizacion' => $arr['fecha_actualizacion'] ?? $arr['FECHA_ACTUALIZACION'] ?? $arr['updated_at'] ?? null,
+                'id' => $m->id_material ?? $m->id ?? null,
+                'nombre' => $m->nombre ?? '-',
+                'descripcion' => $m->descripcion ?? $m->DESCRIPCION ?? '-',
+                'cantidad' => intval($m->stock ?? $m->cantidad ?? 0),
+                'estado' => $m->estado ?? $m->ESTADO ?? 'pendiente',
+                'fecha_actualizacion' => $m->updated_at ?? null,
+                'proveedor_label' => $provLabel,
+                'id_proveedor' => $prov->id_proveedor ?? null,
+                'id_usuario_proveedor' => $provUser->id_usuario ?? null,
+                'imagen' => $m->imagen ?? null,
+                'primary_image_url' => $imgUrl,
             ];
         });
     } catch (Throwable $e) {
-        $materiales = null;
+        // Si algo falla al mapear, en lugar de devolver null usamos la colección cruda para evitar mostrar datos de ejemplo.
+        try{
+            $materiales = App\Models\Material::orderBy('nombre')->get();
+        } catch (Throwable $e2){
+            $materiales = collect();
+        }
     }
 
     try{
@@ -107,6 +140,8 @@ Route::middleware('auth')->group(function(){
     Route::patch('/materiales/{id}', [App\Http\Controllers\MaterialController::class, 'update'])->name('materiales.update');
     Route::delete('/materiales/{id}', [App\Http\Controllers\MaterialController::class, 'destroy'])->name('materiales.destroy');
     Route::patch('/materiales/{id}/status', [App\Http\Controllers\MaterialController::class, 'changeStatus'])->name('materiales.changeStatus');
+    // Estadísticas para proveedores
+    Route::get('/proveedor/stats', [App\Http\Controllers\ProveedorStatsController::class, 'index'])->name('proveedor.stats');
 });
 Route::get('/proveedor/stock', [LoginController::class, 'stock'])->name('proveedor.stock');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

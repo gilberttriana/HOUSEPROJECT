@@ -1,5 +1,5 @@
 <div id="addProjectModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" style="display:none;">
-  <div class="bg-[#182234] border border-primary/20 rounded-lg p-6 max-w-4xl w-11/12 relative">
+  <div class="bg-[#182234] border border-primary/20 rounded-lg p-4 max-w-lg w-11/12 md:w-3/4 relative">
     <button id="closeAddProject" type="button" class="absolute top-4 right-4 text-gray-400 hover:text-primary">
       <span class="material-symbols-outlined text-2xl">close</span>
     </button>
@@ -13,23 +13,20 @@
       }
     @endphp
 
-    <form id="formAddProject" action="{{ route('proyectos.store') }}" method="POST" class="space-y-3">
+    <form id="formAddProject" action="{{ route('proyectos.store') }}" method="POST" class="space-y-3 text-sm">
       @csrf
-      <div>
-        <label class="block text-sm font-medium text-white/80 mb-2">Nombre</label>
-        <input name="nombre" required type="text" class="w-full bg-gray-800 border-gray-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary text-white" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-white/80 mb-2">Descripción</label>
-        <textarea name="descripcion" rows="4" class="w-full bg-gray-800 border-gray-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary text-white break-words whitespace-normal"></textarea>
-      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-white/80 mb-1">Nombre</label>
+          <input name="nombre" required type="text" class="w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-primary focus:border-primary text-white py-2 px-2" />
+        </div>
         <div>
           @php
             // Cargar usuarios con rol 'maestro' para el select de contratistas
             $maestros = \App\Models\Usuario::where('rol','maestro')->orderBy('nombre')->get();
           @endphp
-          <label class="block text-sm font-medium text-white/80 mb-2">Contratista (Maestro)</label>
-          <select name="contratista" class="w-full bg-gray-800 border-gray-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary text-white">
+          <label class="block text-sm font-medium text-white/80 mb-1">Contratista (Maestro)</label>
+          <select name="contratista" class="w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-primary focus:border-primary text-white py-2 px-2">
             <option value="">-- Selecciona un contratista --</option>
             @foreach($maestros as $m)
               @php $fullname = trim(($m->nombre ?? '') . ' ' . ($m->apellido ?? '')); @endphp
@@ -37,31 +34,38 @@
             @endforeach
           </select>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-white/80 mb-2">Fecha Inicio</label>
-          <input name="fecha_inicio" type="date" class="w-full bg-gray-800 border-gray-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary text-white" />
-        </div>
-          <div>
-            <label class="block text-sm font-medium text-white/80 mb-2">Fecha Finalización</label>
-            <input name="fecha_fin" type="date" class="w-full bg-gray-800 border-gray-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary text-white" />
-          </div>
       </div>
+
+      <div>
+        <label class="block text-sm font-medium text-white/80 mb-1">Descripción</label>
+        <textarea name="descripcion" rows="3" class="w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-primary focus:border-primary text-white py-2 px-2 break-words whitespace-normal"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
-          <label class="block text-sm font-medium text-white/80 mb-2">Presupuesto Estimado</label>
-          <input name="presupuesto_est" type="number" class="w-full bg-gray-800 border-gray-600 rounded-lg shadow-sm focus:ring-primary focus:border-primary text-white" />
+          <label class="block text-sm font-medium text-white/80 mb-1">Fecha Inicio</label>
+          <input name="fecha_inicio" type="date" class="w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-primary focus:border-primary text-white py-2 px-2" />
         </div>
+        <div>
+          <label class="block text-sm font-medium text-white/80 mb-1">Fecha Finalización</label>
+          <input name="fecha_fin" type="date" class="w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-primary focus:border-primary text-white py-2 px-2" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-white/80 mb-1">Presupuesto Estimado</label>
+          <input name="presupuesto_est" type="number" class="w-full bg-gray-800 border-gray-600 rounded-md shadow-sm focus:ring-primary focus:border-primary text-white py-2 px-2" />
+        </div>
+      </div>
       {{-- El campo 'estado' se gestiona desde el apartado de aprobaciones; no se muestra/establece aquí. --}}
       <div>
-        <label class="block text-sm font-medium text-white/80 mb-2">Materiales (disponibles) — selecciona y añade cantidad</label>
-        <div class="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto p-2 bg-gray-900 rounded">
+        <label class="block text-sm font-medium text-white/80 mb-1">Materiales (disponibles) — selecciona y añade cantidad</label>
+        <div class="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-900 rounded text-sm">
           @forelse($materials as $mat)
             @php
               $mid = $mat->id_material ?? $mat->id ?? null;
               $mname = $mat->nombre ?? $mat->name ?? 'Material';
               $stock = $mat->stock ?? $mat->cantidad ?? 0;
             @endphp
-            <label class="flex items-center justify-between gap-3 bg-gray-800 p-2 rounded">
+            <label class="flex items-center justify-between gap-3 bg-gray-800 py-2 px-3 rounded">
               <div class="flex items-center gap-3">
                 <input type="checkbox" class="material-checkbox" data-id="{{ $mid }}" name="materials[{{ $mid }}][selected]" value="1" />
                 <div class="text-white">{{ $mname }} <span class="text-xs text-white/60">({{ $stock }} en stock)</span></div>
@@ -76,7 +80,7 @@
         </div>
         <p class="text-xs text-white/60 mt-1">Marca cada material y especifica la cantidad necesaria.</p>
       </div>
-      <div class="pt-4 flex gap-3">
+      <div class="pt-3 flex gap-3">
         <button type="submit" class="w-full bg-primary text-white font-semibold py-2 px-3 rounded hover:bg-primary/90">Crear</button>
         <button id="cancelAddProject" type="button" class="w-full bg-gray-700 text-white font-semibold py-2 px-3 rounded hover:bg-gray-600">Cancelar</button>
       </div>

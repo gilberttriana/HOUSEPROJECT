@@ -15,6 +15,9 @@
     @endif
   </div>
   @if(session('success'))<div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>@endif
+  <div class="mb-4">
+    <input id="providerFilterInput" type="text" placeholder="Buscar por proveedor (nombre o empresa)..." class="w-full border px-3 py-2 rounded" />
+  </div>
   <div class="overflow-x-auto bg-card-blue border border-accent-gold/6 rounded-xl p-6">
     <table class="w-full text-left" id="materialsTableStyled">
       <thead class="bg-accent-gold/6">
@@ -42,7 +45,15 @@
           } catch (\Throwable $e) { $fecha = (string)($updatedVal ?? ''); }
         @endphp
   <tr class="cursor-pointer hover:bg-primary/10 material-row" data-id="{{ $m->id_material }}" data-nombre="{{ e($m->nombre) }}" data-descripcion="{{ e($m->descripcion ?? '') }}" data-cantidad="{{ intval($m->stock ?? $m->cantidad ?? 0) }}" data-estado="{{ e($estRaw) }}" data-fecha="{{ $fecha }}">
-          <td class="p-5 text-base text-white">{{ $m->nombre }}</td>
+          <td class="p-5 text-base text-white flex items-center gap-3">
+            @php $imgUrl = $m->primary_image_url ?? null; @endphp
+            @if($imgUrl)
+              <img src="{{ $imgUrl }}" alt="{{ e($m->nombre) }}" class="w-12 h-12 rounded object-cover" />
+            @else
+              <div class="w-12 h-12 rounded bg-gray-700 flex items-center justify-center text-xs text-white">No img</div>
+            @endif
+            <div class="truncate">{{ $m->nombre }}</div>
+          </td>
           <td class="p-5 text-base text-white/80">{{ $m->proveedor->empresa ?? ($m->proveedor->usuario->nombre ?? $m->id_proveedor) }}</td>
           <td class="p-5 text-base text-white">{{ $m->precio }}</td>
           <td class="p-5 text-base text-white">{{ $m->stock }}</td>
@@ -318,6 +329,23 @@
           doc.save(fileName);
         }catch(err){ console.error('Export error', err); alert('Error generando PDF: ' + err.message); }
       });
+    })();
+  </script>
+  <script>
+    (function(){
+      const input = document.getElementById('providerFilterInput');
+      if(!input) return;
+      const tbody = document.querySelector('#materialsTableStyled tbody');
+      if(!tbody) return;
+      let t = null;
+      input.addEventListener('input', function(){ clearTimeout(t); t = setTimeout(function(){
+        const q = input.value.trim().toLowerCase();
+        Array.from(tbody.querySelectorAll('tr')).forEach(function(row){
+          const provCell = row.querySelector('td:nth-child(2)');
+          const provText = provCell ? provCell.textContent.trim().toLowerCase() : '';
+          if(!q || provText.indexOf(q) !== -1) { row.style.display = ''; } else { row.style.display = 'none'; }
+        });
+      }, 150); });
     })();
   </script>
 </div>

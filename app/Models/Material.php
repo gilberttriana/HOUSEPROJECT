@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class Material extends Model
 {
@@ -76,5 +77,55 @@ class Material extends Model
             }
         }catch(\Exception $e){ /* ignore and fallback */ }
         $this->attributes['descripcion'] = $value;
+    }
+
+    /**
+     * Devuelve un array con las rutas de las imágenes asociadas al material.
+     * Mantiene compatibilidad: si en la BD hay una cadena con una ruta, la devuelve como array de 1 elemento.
+     */
+    public function getImagenesAttribute()
+    {
+        $v = $this->attributes['imagen'] ?? null;
+        if ($v === null) return [];
+        // Si ya es array (no habitual), devolver tal cual
+        if (is_array($v)) return $v;
+        // Intentar decodificar JSON
+        try{
+            $decoded = json_decode($v, true);
+            if (is_array($decoded)) return $decoded;
+        }catch(\Throwable $e){ }
+        // Si no es JSON, devolver la cadena como único elemento
+        return [$v];
+    }
+
+    /**
+     * URL de la imagen principal (primer elemento) usando Storage::url cuando sea posible.
+     */
+    public function getPrimaryImageUrlAttribute()
+    {
+        $imgs = $this->imagenes;
+        if (empty($imgs)) return null;
+        $first = $imgs[0];
+        if (!$first) return null;
+        // Si ya es una URL absoluta, devolverla
+        if (preg_match('#^https?://#i', $first)) return $first;
+        // Si existe en el disco public, devolver asset('storage/...')
+        try{
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($first)){
+                return asset('storage/' . ltrim($first, '/'));
+            }
+        }catch(\Throwable $e){ /* ignore */ }
+        // Si el archivo existe en public path, devolver ruta pública
+        try{
+            if (file_exists(public_path($first))){
+                return asset($first);
+            }
+        }catch(\Throwable $e){ /* ignore */ }
+        // Fallback: si tiene el prefijo 'materiales/' devolver asset('storage/...') por convención
+        if (strpos($first, 'materiales/') === 0){
+            return asset('storage/' . ltrim($first, '/'));
+        }
+        // Último recurso: intentar Storage::url o devolver el valor tal cual
+        try{ return Storage::url($first); }catch(\Throwable $e){ return $first; }
     }
 }

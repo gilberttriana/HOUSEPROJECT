@@ -26,6 +26,26 @@
         @endif
     </div>
 
+    <!-- Navegación rápida para proveedor -->
+    <div class="px-6 mb-4">
+        <nav class="flex flex-col gap-2">
+            @if(auth()->check() && auth()->user()->rol === 'proveedor')
+                <a href="{{ route('proveedor.stats') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0b1220]/40 text-white hover:bg-[#0b1220]/60 transition">
+                    <span class="material-symbols-outlined">bar_chart</span>
+                    <span class="font-medium">Estadísticas</span>
+                </a>
+            @endif
+        </nav>
+    </div>
+    
+    <!-- Botón volver al dashboard del proveedor -->
+    <div class="px-6 mb-4">
+        <a href="{{ route('proveedor.dashboard') }}" class="w-full inline-flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-transparent border border-[#2b3b4b] text-white hover:bg-[#0b1220]/60 transition">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span class="font-medium">Volver al dashboard</span>
+        </a>
+    </div>
+
     <!-- Botón cerrar sesión -->
     <div class="px-6 pb-8 border-t border-[#273449]">
         @if(Auth::check())

@@ -37,8 +37,8 @@
       <input name="stock" type="number" class="w-full border px-3 py-2 rounded" />
     </div>
     <div class="mb-3">
-      <label class="block text-sm">Imagen (opcional)</label>
-      <input name="imagen" type="file" accept="image/*" class="w-full" />
+  <label class="block text-sm">Imagenes (opcional) — puedes subir varias</label>
+  <input name="imagen[]" type="file" accept="image/*" class="w-full" multiple />
     </div>
     <div class="flex justify-end">
       <button class="px-4 py-2 bg-primary text-white rounded">Crear</button>

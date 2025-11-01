@@ -34,7 +34,7 @@
                 <td class="px-4 py-3 text-[#101922]/80 dark:text-white/80 break-words whitespace-normal" style="word-wrap:break-word; overflow-wrap:break-word;">{{ $resumen }}</td>
                 <td class="px-4 py-3 text-right whitespace-nowrap">
                   <div class="flex items-center justify-end gap-3">
-                    <a href="#" class="inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-[#101922]/80 hover:bg-primary/20 dark:text-white/80 dark:hover:bg-primary/30">Ver detalles</a>
+                    <a href="#" class="btn-view-details inline-flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium text-[#101922]/80 hover:bg-primary/20 dark:text-white/80 dark:hover:bg-primary/30" data-project='@json($p)'>Ver detalles</a>
                     <form method="POST" action="{{ route('proyectos.aprobar', ['id' => $p->id_proyecto ?? $p->id]) }}" style="display:inline">
                       @csrf
                       <button type="submit" class="inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-xs font-medium text-white hover:bg-primary/90">Aprobar</button>
@@ -57,4 +57,6 @@
     </div>
   </div>
 </div>
+@include('dashboard.proyectos.partials.project_details_modal')
+@include('dashboard.proyectos.partials.project_details_js')
 @endsection

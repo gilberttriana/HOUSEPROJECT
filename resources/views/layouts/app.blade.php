@@ -38,15 +38,69 @@
       },
     }
   </script>
+  <style>
+  /* Ajustes para que el main se posicione al lado del sidebar y sea responsive */
+  /* --sidebar-offset normalmente lo calcula el JS; --sidebar-gap añade separación extra entre sidebar y main */
+  :root{ --sidebar-offset: 18rem; --sidebar-collapsed-offset: 4.5rem; --sidebar-gap: 2.5rem; }
+  main { transition: margin-left 220ms ease; margin-left: calc(var(--sidebar-offset) + var(--sidebar-gap)); }
+  /* Por defecto, cuando el sidebar está presente, el main se desplaza para dejar espacio */
+  .sidebar + main { margin-left: calc(var(--sidebar-offset) + var(--sidebar-gap)) !important; }
+  /* Cuando la sidebar está colapsada, reduce el margen para aprovechar el espacio (se mantiene gap) */
+  .sidebar.collapsed + main { margin-left: calc(var(--sidebar-collapsed-offset) + var(--sidebar-gap)) !important; }
+    /* En pantallas pequeñas no aplicar margen para evitar contenido oculto */
+    @media (max-width: 768px) {
+      .sidebar + main, .sidebar.collapsed + main { margin-left: 0 !important; }
+      .sidebar { position: fixed; z-index: 30; }
+      main { padding-left: 1rem; padding-right: 1rem; }
+    }
+  </style>
 </head>
 <body class="bg-[#2b2413] dark:bg-[#2b2413] font-display">
   <div class="flex min-h-screen">
     <x-sidebar />
-    <main class="flex-1 p-8 lg:p-10 bg-transparent ml-72">
+    <main class="flex-1 p-6 lg:p-8 bg-transparent">
       @yield('content')
     </main>
   </div>
   @yield('scripts')
+  {{-- Cargar script que ajusta el main según el sidebar (usa Vite) --}}
+  @if(function_exists('vite'))
+    @vite(['resources/js/dashboard/sidebar-adjust.js'])
+  @else
+    <script type="module" src="/resources/js/dashboard/sidebar-adjust.js"></script>
+  @endif
+  <!-- Fallback inline: asegura que las variables CSS se actualizan aunque el módulo externo no cargue -->
+  <script>
+    (function(){
+      function computeSidebarVars(){
+        try{
+          var sidebar = document.getElementById('sidebar');
+          if(!sidebar) return;
+          var rect = sidebar.getBoundingClientRect();
+          var sideWidth = Math.ceil(rect.width || 0);
+          if(sidebar.classList && sidebar.classList.contains('collapsed')){
+            sideWidth = Math.max(56, Math.min(sideWidth || 70, 90));
+          }
+          var w = window.innerWidth || document.documentElement.clientWidth;
+          if(w < 768){
+            document.documentElement.style.setProperty('--sidebar-offset','0px');
+            document.documentElement.style.setProperty('--sidebar-gap','0px');
+            return;
+          }
+          var baseGap = 16;
+          var extra = (w >= 1280) ? 24 : (w >= 768 ? 16 : 0);
+          var safety = 48; // fallback extra para cubrir scrollbars/zoom
+          var gap = baseGap + extra + safety;
+          document.documentElement.style.setProperty('--sidebar-offset', sideWidth + 'px');
+          document.documentElement.style.setProperty('--sidebar-gap', gap + 'px');
+        }catch(e){ console.warn('sidebar fallback compute error', e); }
+      }
+      if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', computeSidebarVars); else computeSidebarVars();
+      window.addEventListener('resize', computeSidebarVars);
+      setTimeout(computeSidebarVars, 80);
+      setTimeout(computeSidebarVars, 400);
+    })();
+  </script>
   <script>
     // Defined here so it's always available even when pages are loaded via AJAX.
       if (typeof window.initUsuariosModal !== 'function') {
@@ -83,6 +137,9 @@
     // AJAX navigation 
     (function(){
       function initAjaxNav(){
+        // Temporal: desactivar la navegación AJAX porque está causando fallos.
+        // Devolver aquí permite que los enlaces funcionen como enlaces normales (carga completa de página).
+        return;
         const sidebar = document.getElementById('sidebarNav');
         if(!sidebar) return;
         sidebar.addEventListener('click', function(e){

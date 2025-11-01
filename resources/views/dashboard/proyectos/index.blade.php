@@ -17,19 +17,5 @@
   {{-- incluir modal y scripts necesarios para crear proyecto en la misma página --}}
   @include('dashboard.proyectos.partials.project_modal')
   @include('dashboard.proyectos.partials.project_js')
-  @if(request()->query('open'))
-    <script>
-      document.addEventListener('DOMContentLoaded', function(){
-        try{
-          const modal = document.getElementById('addProjectModal');
-          if(modal){
-            modal.style.display = 'flex';
-            // eliminar el query param para que recargar la página no vuelva a abrir el modal
-            try{ history.replaceState(null, '', window.location.pathname); }catch(e){}
-          }
-        }catch(e){ }
-      });
-    </script>
-  @endif
 </div>
 @endsection
