@@ -1,8 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto">
-  <div class="flex items-center justify-between mb-4">
+<div class="with-sidebar">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-4">
     <h2 class="text-2xl font-bold">Proyectos</h2>
     <div>
       <button id="btnAddProject" class="inline-flex items-center gap-2 bg-primary text-white font-semibold py-2 px-4 rounded-lg hover:bg-primary/90">+
@@ -17,7 +18,8 @@
   @include('dashboard.proyectos.partials.projects_list')
 
   {{-- Modal de creación (partial) --}}
-  @include('dashboard.proyectos.partials.project_modal', ['materialsList' => $materialsList ?? collect()])
+    @include('dashboard.proyectos.partials.project_modal', ['materialsList' => $materialsList ?? collect()])
+  </div>
 </div>
 @endsection
 

@@ -39,20 +39,33 @@
     }
   </script>
   <style>
-  /* Ajustes para que el main se posicione al lado del sidebar y sea responsive */
-  /* --sidebar-offset normalmente lo calcula el JS; --sidebar-gap añade separación extra entre sidebar y main */
-  :root{ --sidebar-offset: 18rem; --sidebar-collapsed-offset: 4.5rem; --sidebar-gap: 2.5rem; }
-  main { transition: margin-left 220ms ease; margin-left: calc(var(--sidebar-offset) + var(--sidebar-gap)); }
-  /* Por defecto, cuando el sidebar está presente, el main se desplaza para dejar espacio */
-  .sidebar + main { margin-left: calc(var(--sidebar-offset) + var(--sidebar-gap)) !important; }
-  /* Cuando la sidebar está colapsada, reduce el margen para aprovechar el espacio (se mantiene gap) */
-  .sidebar.collapsed + main { margin-left: calc(var(--sidebar-collapsed-offset) + var(--sidebar-gap)) !important; }
-    /* En pantallas pequeñas no aplicar margen para evitar contenido oculto */
-    @media (max-width: 768px) {
-      .sidebar + main, .sidebar.collapsed + main { margin-left: 0 !important; }
-      .sidebar { position: fixed; z-index: 30; }
-      main { padding-left: 1rem; padding-right: 1rem; }
-    }
+  /* Implementación CSS-only (sin lógica JS) para márgenes estables entre
+     sidebar y main. Usamos margin-left en main para desplazar todo el bloque
+     principal y evitar superposición cuando el sidebar está fijo. Manteniendo
+     transiciones para suavizar cambios. */
+  /* Por defecto no desplazar todo el main — permitimos que las vistas opt-in
+     (añadiendo la clase .with-sidebar) reciban el margen necesario. Esto evita
+     que cambios globales afecten a otras páginas. */
+  main { margin-left: 0; transition: margin-left 220ms ease; }
+
+  /* Clase por vista: aplicar desplazamiento sólo cuando la vista lo requiera */
+  .with-sidebar { transition: margin-left 220ms ease; }
+
+  @media (min-width: 1280px) {
+    .with-sidebar { margin-left: calc(18rem + 1.5rem) !important; }
+  }
+
+  @media (min-width: 768px) and (max-width: 1279px) {
+    .with-sidebar { margin-left: calc(18rem + 1rem) !important; }
+  }
+
+  /* Colapsado: si la vista añade la clase .sidebar-collapsed, usar un margen menor */
+  .sidebar-collapsed .with-sidebar { margin-left: calc(4.5rem + 1rem) !important; }
+
+  @media (max-width: 767px) {
+    .with-sidebar { margin-left: 0 !important; padding-left: 1rem !important; padding-right: 1rem !important; }
+    .sidebar { position: fixed; z-index: 30; }
+  }
   </style>
 </head>
 <body class="bg-[#2b2413] dark:bg-[#2b2413] font-display">
@@ -63,44 +76,7 @@
     </main>
   </div>
   @yield('scripts')
-  {{-- Cargar script que ajusta el main según el sidebar (usa Vite) --}}
-  @if(function_exists('vite'))
-    @vite(['resources/js/dashboard/sidebar-adjust.js'])
-  @else
-    <script type="module" src="/resources/js/dashboard/sidebar-adjust.js"></script>
-  @endif
-  <!-- Fallback inline: asegura que las variables CSS se actualizan aunque el módulo externo no cargue -->
-  <script>
-    (function(){
-      function computeSidebarVars(){
-        try{
-          var sidebar = document.getElementById('sidebar');
-          if(!sidebar) return;
-          var rect = sidebar.getBoundingClientRect();
-          var sideWidth = Math.ceil(rect.width || 0);
-          if(sidebar.classList && sidebar.classList.contains('collapsed')){
-            sideWidth = Math.max(56, Math.min(sideWidth || 70, 90));
-          }
-          var w = window.innerWidth || document.documentElement.clientWidth;
-          if(w < 768){
-            document.documentElement.style.setProperty('--sidebar-offset','0px');
-            document.documentElement.style.setProperty('--sidebar-gap','0px');
-            return;
-          }
-          var baseGap = 16;
-          var extra = (w >= 1280) ? 24 : (w >= 768 ? 16 : 0);
-          var safety = 48; // fallback extra para cubrir scrollbars/zoom
-          var gap = baseGap + extra + safety;
-          document.documentElement.style.setProperty('--sidebar-offset', sideWidth + 'px');
-          document.documentElement.style.setProperty('--sidebar-gap', gap + 'px');
-        }catch(e){ console.warn('sidebar fallback compute error', e); }
-      }
-      if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', computeSidebarVars); else computeSidebarVars();
-      window.addEventListener('resize', computeSidebarVars);
-      setTimeout(computeSidebarVars, 80);
-      setTimeout(computeSidebarVars, 400);
-    })();
-  </script>
+  {{-- Sidebar sizing handled by CSS-only rules; no JS measurement required anymore --}}
   <script>
     // Defined here so it's always available even when pages are loaded via AJAX.
       if (typeof window.initUsuariosModal !== 'function') {

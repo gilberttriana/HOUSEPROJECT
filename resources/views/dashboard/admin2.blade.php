@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 md:px-6 lg:px-8">
+<div class="with-sidebar">
+  <div class="max-w-5xl mx-auto px-4 md:px-6 lg:px-8">
   <div class="flex items-center justify-between mb-4">
   <h1 class="text-xl md:text-2xl font-bold text-[#F8F4EA] leading-tight">Dashboard Administrador</h1>
     <div class="flex items-center gap-4">
@@ -250,6 +251,7 @@
     </div>
   </section>
   @include('dashboard.partials.project_modal', ['materialsList' => $materialsList ?? collect()])
+  </div>
 </div>
 
 @section('scripts')

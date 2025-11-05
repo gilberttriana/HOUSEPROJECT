@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto">
+<div class="with-sidebar">
+  <div class="max-w-3xl mx-auto">
   <h2 class="text-2xl font-bold mb-4">Nuevo Material</h2>
   @if($errors->any())<div class="mb-4 text-red-600">{{ $errors->first() }}</div>@endif
   <form method="POST" action="{{ route('materiales.store') }}" enctype="multipart/form-data">
@@ -44,5 +45,6 @@
       <button class="px-4 py-2 bg-primary text-white rounded">Crear</button>
     </div>
   </form>
+  </div>
 </div>
 @endsection

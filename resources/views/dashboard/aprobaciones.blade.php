@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mx-auto max-w-7xl">
+<div class="with-sidebar">
+  <div class="mx-auto max-w-7xl">
   <div class="mb-6">
     <h2 class="text-2xl font-bold text-[#101922] dark:text-white">Aprobaciones de Proyectos</h2>
     <p class="mt-2 text-[#101922]/60 dark:text-white/60">Revisa y aprueba o rechaza los proyectos pendientes.</p>
@@ -56,7 +57,8 @@
       </table>
     </div>
   </div>
+  </div>
+  @include('dashboard.proyectos.partials.project_details_modal')
+  @include('dashboard.proyectos.partials.project_details_js')
 </div>
-@include('dashboard.proyectos.partials.project_details_modal')
-@include('dashboard.proyectos.partials.project_details_js')
 @endsection

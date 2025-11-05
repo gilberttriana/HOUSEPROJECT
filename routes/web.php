@@ -84,7 +84,7 @@ Route::get('/dashboard/admin', function () {
 use Illuminate\Http\Request;
 
 Route::get('/dashboard/dashboardProv', function () {
-    return view('dashboard.dashboardProv');
+    return view('dashboard.proveedor.dashboardProv');
 })->name('proveedor.dashboard');
 
 Route::get('/dashboard/maestro', function () {

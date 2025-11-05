@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="with-sidebar">
+  <div class="max-w-7xl mx-auto">
     <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold">Materiales</h2>
     @if(auth()->check() && in_array(auth()->user()->rol, ['proveedor','admin']))
@@ -348,5 +349,6 @@
       }, 150); });
     })();
   </script>
+  </div>
 </div>
 @endsection

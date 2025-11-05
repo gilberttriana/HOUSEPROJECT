@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="with-sidebar">
+  <div class="max-w-7xl mx-auto">
   @if(session('success'))
   <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
   @endif
@@ -137,6 +138,7 @@
     </table>
   </div>
 @endforeach
+  </div>
   </div>
 </div>
 <!-- Modal para crear usuario -->
